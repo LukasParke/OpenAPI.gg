@@ -3,6 +3,9 @@
 	import filenamify from 'filenamify';
 	import { stringify } from 'yaml';
 
+	export let width: CssClasses = "w-full"
+	export let padding: CssClasses = "px-2 py-0.5"
+
 	$: fileName = filenamify($selectedSpec.spec?.info?.title) || 'openapi';
 
 	const saveYAML = () => {
@@ -36,12 +39,10 @@
 	};
 </script>
 
-<div class="grid grid-cols-1 text-xs gap-2">
-	<span class="text-center font-bold text-sm">Download</span>
-	<button
+<button
 		type="button"
 		on:click={saveYAML}
-		class="btn btn-sm rounded-lg w-full variant-ghost-tertiary gap-1"
+		class="btn btn-sm {width} {padding} variant-ghost-tertiary gap-1"
 		aria-label="Download a YAML representation of the OpenAPI document."
 	>
 		YAML
@@ -63,7 +64,7 @@
 	<button
 		type="button"
 		on:click={saveJSON}
-		class="btn btn-sm rounded-lg w-full variant-ghost-tertiary gap-1"
+		class="btn btn-sm  {width} {padding} variant-ghost-tertiary gap-1"
 		aria-label="Download a JSON representation of the OpenAPI document."
 	>
 		JSON
@@ -82,4 +83,3 @@
 			/>
 		</svg>
 	</button>
-</div>

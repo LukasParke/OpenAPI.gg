@@ -1,9 +1,5 @@
 <script lang="ts">
-	import {
-		addPath,
-		deletePath,
-		renamePath
-	} from '$lib';
+	import { addPath, deletePath, renamePath } from '$lib';
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	const modalStore = getModalStore();
 
@@ -13,31 +9,33 @@
 	export let id: number;
 </script>
 
-<div class="flex justify-between">
-	<h3 class="">{pathName}</h3>
-	<div class="flex gap-2">
-		<a href="/paths/{id}" class="btn btn-sm variant-filled-primary">Edit</a>
+<div class="flex flex-wrap justify-between gap-1">
+	<h3 class="truncate font-mono"><span class="md:hidden">Path: </span>{pathName}</h3>
+	<div class="flex md:gap-2 flex-wrap gap-1">
+		<a href="/paths/{pathName}" class="btn btn-sm variant-filled-primary grow md:w-fit w-full">Edit</a>
+		<div class="grow flex flex-row gap-1">
+			<button
+				type="button"
+				class="btn btn-sm variant-filled-warning grow"
+				on:click={() => {
+					renamePath(modalStore, pathName);
+				}}
+			>
+				Change path
+			</button>
+			<button
+				type="button"
+				class="btn btn-sm variant-filled-secondary grow"
+				on:click={() => {
+					addPath(modalStore, pathName);
+				}}
+			>
+				Add Sub-Route
+			</button>
+		</div>
 		<button
 			type="button"
-			class="btn btn-sm variant-filled-warning"
-			on:click={() => {
-				renamePath(modalStore, pathName);
-			}}
-		>
-			Change path
-		</button>
-		<button
-			type="button"
-			class="btn btn-sm variant-filled-secondary"
-			on:click={() => {
-				addPath(modalStore, pathName);
-			}}
-		>
-			Add Sub-Route
-		</button>
-		<button
-			type="button"
-			class="btn btn-sm variant-ringed-error hover:variant-filled-error"
+			class="btn btn-sm variant-ringed-error hover:variant-filled-error grow"
 			on:click={() => {
 				deletePath(modalStore, pathName);
 			}}

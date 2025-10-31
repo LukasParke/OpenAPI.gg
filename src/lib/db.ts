@@ -41,22 +41,25 @@ export const blankSpec: OpenAPIV3_1.Document = {
 	}
 };
 
-export const newSpec: APISpec = {
+export const newSpec: () => APISpec = () => structuredClone({
     name: 'OpenAPI',
     spec: blankSpec
-} as const
+})
 
 export const selectedSpecId: Writable<string | undefined> = persisted("selectedSpecId",undefined)
-export const selectedSpec: Writable<APISpec> = writable(newSpec)
+export const selectedSpec: Writable<APISpec> = writable(newSpec())
 
 selectedSpec.subscribe((spec) => {
     if(!spec){
-        spec = structuredClone(newSpec)
+        spec = newSpec()
     }
     if(spec.id){
         selectedSpecId.set(spec.id)
     }
 })
+
+export const specLoaded: Writable<boolean> = writable(false);
+export const pageLoaded: Writable<boolean> = writable(false);
 
 export interface APISpec {
     id?: string;

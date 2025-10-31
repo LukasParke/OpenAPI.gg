@@ -48,7 +48,10 @@
 			/>
 		</label>
 	</div>
-	<div class="border-token rounded-container-token bg-surface-backdrop-token space-y-1 p-4">
+	<div class="flex flex-row flex-wrap w-full gap-2">
+
+	
+	<div class="border-token grow rounded-container-token bg-surface-backdrop-token space-y-1 p-4">
 		<h4 class="h4">Contact Information</h4>
 		{#if $selectedSpec.spec.info.contact}
 			<label class="space-y-1">
@@ -99,4 +102,5 @@
 	</div>
 
 	<LicenseAtom />
+</div>
 </form>

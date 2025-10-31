@@ -13,7 +13,7 @@
 	export let parent: SvelteComponent;
 
 	let files: FileList | undefined;
-	let uploadSpec: Writable<APISpec> = writable(newSpec);
+	let uploadSpec: Writable<APISpec> = writable(newSpec());
 	let saving = false;
 	const extensionRegex = /\.(json|yml|yaml)$/;
 

@@ -1,36 +1,75 @@
 <script lang="ts">
 	import { selectedSpec } from '$lib/db';
 	import spdxLicenseList from 'spdx-license-list';
+	import { onMount } from 'svelte';
+
+	const modifiedLicenseList = Object.entries(spdxLicenseList).map((entry) => {
+		return {
+			identifier: entry[0],
+			name: entry[1].name,
+			url: entry[1].url
+		};
+	});
 
 	const popularLicenses = ['MIT', 'Apache-2.0', 'GPL-3.0', 'Unlicense'];
+
+	let selectedLicense: {
+		name: string;
+		url: string;
+		identifier: string;
+	};
+
+	selectedSpec.subscribe((spec) => {
+		if (!spec.spec.info.license) return;
+
+		let licenseCandidate;
+
+		if (spec.spec.info.license.identifier) {
+			licenseCandidate = modifiedLicenseList.find(
+				(entry) => entry.identifier === spec.spec.info.license!.identifier
+			);
+		} else if (spec.spec.info.license.url) {
+			licenseCandidate = modifiedLicenseList.find(
+				(entry) => entry.url === spec.spec.info.license!.url
+			);
+		} else if (spec.spec.info.license.name) {
+			licenseCandidate = modifiedLicenseList.find(
+				(entry) => entry.name === spec.spec.info.license!.name
+			);
+		}
+
+		if (licenseCandidate) {
+			selectedLicense = licenseCandidate;
+		}
+	});
 </script>
 
-<div class="border-token rounded-container-token space-y-1 p-4">
-	<div class="flex flex-row justify-between">
+<div class="border-token grow rounded-container-token bg-surface-backdrop-token space-y-1 p-4">
+	<div class="flex flex-row flex-wrap justify-between">
 		<h4 class="h4">License</h4>
 		{#if $selectedSpec.spec.info.license}
-			<label class="text-sm space-x-2">
+			<label class="text-sm ">
 				<span>Pick a license</span>
 				<select
-					class="select w-56 text-sm"
-					bind:value={$selectedSpec.spec.info.license.identifier}
+					class="select md:w-56 text-sm"
+					bind:value={selectedLicense}
 					on:change={() => {
-						// @ts-expect-error - This is literally inside a null check
-						$selectedSpec.spec.info.license.url = null
-						// @ts-expect-error - This is only running on identifier change
-						$selectedSpec.spec.info.license.name =
-						// @ts-expect-error - This is only running on identifier change
-							spdxLicenseList[$selectedSpec.spec.info.license.identifier].name;
+						$selectedSpec.spec.info.license = {
+							name: selectedLicense.name,
+							url: selectedLicense.url
+						};
 					}}
 				>
 					<optgroup label="Popular Licenses">
-						{#each Object.keys(spdxLicenseList).filter( (entry) => popularLicenses.includes(entry) ) as license}
-							<option value={license}>{spdxLicenseList[license].name}</option>
+						{#each modifiedLicenseList.filter( (entry) => popularLicenses.includes(entry.identifier) ) as license}
+							<option value={license}>{license.name}</option>
 						{/each}
 					</optgroup>
 					<optgroup label="All Licenses">
-						{#each Object.keys(spdxLicenseList).sort() as license}
-							<option value={license}>{spdxLicenseList[license].name}</option>
+						{#each modifiedLicenseList
+							.filter((entry) => !popularLicenses.includes(entry.identifier))
+							.sort() as license}
+							<option value={license}>{license.name}</option>
 						{/each}
 					</optgroup>
 				</select>
@@ -75,9 +114,8 @@
 			class="btn variant-filled-primary"
 			on:click={() => {
 				$selectedSpec.spec.info.license = {
-					name: '',
-					identifier: '',
-					url: ''
+					name: spdxLicenseList['MIT'].name,
+					url: spdxLicenseList['MIT'].url
 				};
 			}}
 		>

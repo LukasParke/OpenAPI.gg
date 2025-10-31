@@ -11,7 +11,7 @@
 
 	let selectedSchema: string;
 	const addSecuritySchema = () => {
-		let tempSchemaList = $selectedSpec.spec.security || [];
+		let tempSchemaList = $selectedSpec.spec.components?.securitySchemes || [];
 		let newSchema;
 		switch (selectedSchema) {
 			case 'basicAuth':
@@ -36,21 +36,21 @@
 
 		if (newSchema) {
 			tempSchemaList = [...tempSchemaList, newSchema];
-			$selectedSpec.spec.security = tempSchemaList;
+			$selectedSpec.spec.components.securitySchemes = tempSchemaList;
 		}
 	};
 	const removeSecuritySchema = (index: number) => {
-		let tempSchemaList = $selectedSpec.spec.security;
+		let tempSchemaList = $selectedSpec.spec.components.securitySchemes;
 		tempSchemaList.splice(index, 1);
-		$selectedSpec.spec.security = tempSchemaList;
+		$selectedSpec.spec.components.securitySchemes = tempSchemaList;
 	};
 </script>
 
-{#if $selectedSpec.spec.security}
+{#if $selectedSpec.spec.components?.securitySchemes}
 	<form
 		class="border-token rounded-container-token bg-surface-backdrop-token px-6 py-4 min-h-20 space-y-4"
 	>
-		{#each $selectedSpec.spec.security as schema, index}
+		{#each Object.entries($selectedSpec.spec.components.securitySchemes) as schema, index}
 			<div class="card w-full p-4">
 				<div class="flex flex-row-reverse w-full">
 					<button
@@ -68,15 +68,15 @@
 			<hr />
 		{/each}
 
-		<span class="flex justify-center items-center gap-2 max-w-sm mx-auto">
-			<select name="security-schema" bind:value={selectedSchema} class="input w-fit text-sm">
+		<span class="flex flex-wrap justify-center items-center gap-2 max-w-sm mx-auto">
+			<select name="security-schema" bind:value={selectedSchema} class="input w-fit text-sm grow">
 				<option value="basicAuth" selected>Basic Auth</option>
 				<option value="bearerAuth">Bearer Auth</option>
 				<option value="ApiKeyAuth">API Key Auth</option>
 				<option value="openId">OpenID</option>
 				<option value="oAuthSample">OAuth2</option>
 			</select>
-			<button type="button" class="btn text-sm variant-filled-primary" on:click={addSecuritySchema}>
+			<button type="button" class="btn text-sm variant-filled-primary grow" on:click={addSecuritySchema}>
 				Add Security Schema
 			</button>
 		</span>

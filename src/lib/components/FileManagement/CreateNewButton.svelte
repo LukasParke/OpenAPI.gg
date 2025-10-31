@@ -10,9 +10,9 @@
 				'This operation clears all the current values, unsaved data will be lost, are you sure?'
 			)
 		) {
-			loadSpec(structuredClone(newSpec));
+			loadSpec(newSpec());
 		}
 	}}
 >
-	Create New
+	New
 </button>

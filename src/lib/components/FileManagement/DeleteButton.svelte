@@ -17,7 +17,7 @@
 			if (specs.length > 0){
 				loadSpec(specs[0]);
 			} else {
-				loadSpec(structuredClone(newSpec));
+				loadSpec(newSpec());
 			}
 		}
 	}}

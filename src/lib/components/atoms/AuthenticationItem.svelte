@@ -3,7 +3,7 @@
 	import type { OpenAPIV3_1 } from '$lib/openAPITypes';
 	import OAuthFlow from '$lib/components/atoms/OAuthFlow.svelte';
 
-	export let schema: OpenAPIV3_1.SecuritySchemeObject;
+	export let schema: [String, OpenAPIV3_1.SecuritySchemeObject | OpenAPIV3_1.ReferenceObject];
 
 	let availableFlows: ('implicit' | 'password' | 'clientCredentials' | 'authorizationCode')[] = [
 		'implicit',

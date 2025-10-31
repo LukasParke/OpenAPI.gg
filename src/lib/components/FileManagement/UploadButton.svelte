@@ -13,4 +13,4 @@ export let width: CssClasses = "w-full"
 	};
 </script>
 
-<button class="btn variant-ghost-tertiary {width}" on:click={() => modalStore.trigger(modal)}>Upload New</button>
+<button class="btn variant-ghost-tertiary {width}" on:click={() => modalStore.trigger(modal)}>Upload</button>

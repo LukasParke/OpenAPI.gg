@@ -18,12 +18,12 @@
 
 <div class="w-full flex flex-row justify-center">
 	<div
-		class="fixed bottom-10 px-5 w-full max-w-xs shadow-xl flex flex-row gap-2 justify-between bg-surface-100-800-token rounded-full p-4"
+		class="fixed bottom-1 md:bottom-5 md:w-full md:max-w-[270px] w-fit shadow-xl flex flex-row gap-2 justify-between bg-surface-100-800-token rounded-full md:p-3 p-1"
 	>
 		<span class="flex justify-center">
 			<button
 				type="button"
-				class="btn gap-2 variant-filled-primary"
+				class="btn btn-sm grow gap-2 variant-filled-primary"
 				on:click={() => {
 					addPath(modalStore);
 				}}
@@ -48,7 +48,7 @@
 		<span class="flex justify-center">
 			<button
 				type="button"
-				class="btn btn-sm gap-2 variant-filled-secondary"
+				class="btn btn-sm grow gap-2 variant-filled-secondary"
 				on:click={sortPathsAlphabetically}
 			>
 				<svg
@@ -71,7 +71,7 @@
 	</div>
 </div>
 <div
-	class="mx-auto border-token rounded-container-token bg-surface-backdrop-token px-6 py-4 space-y-4"
+	class="mx-auto border-token rounded-container-token bg-surface-backdrop-token md:px-6 px-2 md:py-4 py-2 space-y-4 mb-10"
 >
 	{#if Object.keys(paths).length === 0}
 		<p class="text-center">Wow such empty.</p>

@@ -11,7 +11,7 @@
 	on:click={async () => {
 		if (confirm(`Are you sure you want to delete all saved specs?`)) {
 			db.apiSpecs.clear();
-			loadSpec(structuredClone(newSpec));
+			loadSpec(newSpec());
 		}
 	}}
 >

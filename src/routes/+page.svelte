@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { pathCount, operationCount } from '$lib';
+	import { operationCount, pathCount } from '$lib';
 	import CreateNewButton from '$lib/components/FileManagement/CreateNewButton.svelte';
 	import DeleteAllButton from '$lib/components/FileManagement/DeleteAllButton.svelte';
 	import DeleteButton from '$lib/components/FileManagement/DeleteButton.svelte';
@@ -7,30 +7,11 @@
 	import SaveButton from '$lib/components/FileManagement/SaveButton.svelte';
 	import SaveNewButton from '$lib/components/FileManagement/SaveNewButton.svelte';
 	import UploadButton from '$lib/components/FileManagement/UploadButton.svelte';
-	import { db, loadSpec, newSpec, selectedSpec, selectedSpecId } from '$lib/db';
-	import { liveQuery } from 'dexie';
+	import { db, pageLoaded, selectedSpec, specLoaded } from '$lib/db';
 	import { ProgressRadial } from '@skeletonlabs/skeleton';
-	import { onMount } from 'svelte';
+	import { liveQuery } from 'dexie';
 
-	let apiSpecs = liveQuery(() => db.apiSpecs.toArray());
-	let specLoaded = false;
-	let pageLoaded = false;
-
-	apiSpecs.subscribe((specs) => {
-		if (specLoaded) return;
-
-		if ($selectedSpecId !== $selectedSpec.id) {
-			const found = specs.find((spec) => spec.id === $selectedSpecId);
-
-			if (found) {
-				loadSpec(found);
-				specLoaded = true;
-			}
-		} else if (specs.length > 0) {
-			loadSpec(specs[0]);
-			specLoaded = true;
-		}
-	});
+	const apiSpecs = liveQuery(() => db.apiSpecs.toArray());
 
 	$: stats = [
 		{
@@ -42,15 +23,6 @@
 			value: operationCount($selectedSpec.spec)
 		}
 	];
-
-	onMount(() => {
-		console.log('onMount', $selectedSpecId, $selectedSpec);
-		if ($selectedSpec) {
-			pageLoaded = true;
-		}
-	});
-
-	$: console.log('newSpec', newSpec, $selectedSpec, $selectedSpecId, $apiSpecs, $apiSpecs?.length, specLoaded);
 </script>
 
 <div class="grid place-content-center h-full gap-2 px-1">
@@ -64,9 +36,6 @@
 				<input type="text" bind:value={$selectedSpec.name} class="input w-full" />
 			</label>
 			<div>
-				<p><span class="font-semibold text-lg">Id:</span> {$selectedSpec.id || 'Not Saved'}</p>
-			</div>
-			<div>
 				<p class="font-semibold text-lg">Stats:</p>
 				{#each stats as stat}
 					<p class="">
@@ -74,16 +43,7 @@
 					</p>
 				{/each}
 			</div>
-			<div class="flex flex-row justify-center gap-2">
-				{#if $selectedSpec.id}
-					<CreateNewButton />
-				{/if}
-				<SaveButton />
-				{#if $selectedSpec.id}
-					<SaveNewButton />
-					<DeleteButton spec={$selectedSpec} />
-				{/if}
-			</div>
+			
 		</div>
 		{#if $apiSpecs && $apiSpecs.length > 0}
 			<table class="table">
@@ -110,8 +70,9 @@
 				</tbody>
 			</table>
 			<div class="flex flex-row justify-center w-full gap-4">
-				<DeleteAllButton />
+				<CreateNewButton />
 				<UploadButton />
+				<DeleteAllButton />
 			</div>
 		{:else}
 			<UploadButton />

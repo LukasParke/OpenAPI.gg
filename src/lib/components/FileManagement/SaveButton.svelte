@@ -3,6 +3,7 @@
 	import type { CssClasses } from '@skeletonlabs/skeleton';
 	
 	export let width: CssClasses = "w-full"
+	export let padding: CssClasses = "px-3 py-1"
 
 	async function onSave(e: Event): Promise<void> {
 		console.log('Save button clicked');
@@ -12,4 +13,4 @@
 
 </script>
 
-<button class="btn variant-ghost-success {width}" on:click={onSave}> Save </button>
+<button class="btn variant-ghost-success {width} {padding}" on:click={onSave}> Save </button>
