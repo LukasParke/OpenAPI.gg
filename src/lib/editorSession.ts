@@ -12,6 +12,19 @@ const snapshot = (spec: APISpec) => structuredClone(spec);
 const serialize = (spec: APISpec) => JSON.stringify(spec);
 const identity = (spec: APISpec) => spec.id ?? 'new';
 
+export class PersistenceQueue {
+	private pending: Promise<void> = Promise.resolve();
+
+	enqueue<T>(write: () => Promise<T>): Promise<T> {
+		const result = this.pending.then(write);
+		this.pending = result.then(
+			() => undefined,
+			() => undefined
+		);
+		return result;
+	}
+}
+
 export class EditorHistory {
 	private current?: APISpec;
 	private currentIdentity?: string;
@@ -74,6 +87,7 @@ export class EditorHistory {
 }
 
 const history = new EditorHistory();
+const persistence = new PersistenceQueue();
 let autosaveTimer: ReturnType<typeof setTimeout> | undefined;
 let autosaveRevision = 0;
 let recoveredDraft = false;
@@ -104,7 +118,7 @@ const scheduleAutosave = (spec: APISpec) => {
 	const pending = snapshot(spec);
 	autosaveTimer = setTimeout(async () => {
 		try {
-			await saveSpec(pending);
+			await persistence.enqueue(() => saveSpec(pending));
 			if (revision === autosaveRevision) saveStatus.set('saved');
 		} catch {
 			if (revision === autosaveRevision) saveStatus.set('error');
@@ -152,7 +166,8 @@ export const saveDocumentNow = async () => {
 	const revision = ++autosaveRevision;
 	saveStatus.set('saving');
 	try {
-		const saved = await saveSpec(get(selectedSpec));
+		const pending = snapshot(get(selectedSpec));
+		const saved = await persistence.enqueue(() => saveSpec(pending));
 		if (saved) {
 			if (typeof window !== 'undefined') localStorage.removeItem(DRAFT_STORAGE_KEY);
 			recoveredDraft = false;

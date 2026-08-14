@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createNewSpec } from './db';
-import { EditorHistory } from './editorSession';
+import { EditorHistory, PersistenceQueue } from './editorSession';
 
 describe('editor history', () => {
 	it('coalesces rapid edits and supports undo and redo', () => {
@@ -28,5 +28,30 @@ describe('editor history', () => {
 		expect(history.canUndo).toBe(true);
 		history.observe(second, 2_000);
 		expect(history.canUndo).toBe(false);
+	});
+});
+
+describe('persistence queue', () => {
+	it('finishes an older write before starting a newer write', async () => {
+		const queue = new PersistenceQueue();
+		const writes: string[] = [];
+		let releaseOlderWrite: () => void = () => undefined;
+		const olderWriteBlocked = new Promise<void>((resolve) => {
+			releaseOlderWrite = resolve;
+		});
+
+		const olderWrite = queue.enqueue(async () => {
+			await olderWriteBlocked;
+			writes.push('older');
+		});
+		const newerWrite = queue.enqueue(async () => {
+			writes.push('newer');
+		});
+
+		await Promise.resolve();
+		expect(writes).toEqual([]);
+		releaseOlderWrite();
+		await Promise.all([olderWrite, newerWrite]);
+		expect(writes).toEqual(['older', 'newer']);
 	});
 });

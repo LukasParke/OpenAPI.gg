@@ -35,7 +35,13 @@ const resolvesLocalReference = (document: OpenAPIV3_1.Document, reference: strin
 		.slice(2)
 		.split('/')
 		.map((part) => part.replaceAll('~1', '/').replaceAll('~0', '~'))) {
-		if (!current || typeof current !== 'object' || !(segment in current)) return false;
+		if (
+			!current ||
+			typeof current !== 'object' ||
+			!Object.prototype.hasOwnProperty.call(current, segment)
+		) {
+			return false;
+		}
 		current = (current as Record<string, unknown>)[segment];
 	}
 	return true;

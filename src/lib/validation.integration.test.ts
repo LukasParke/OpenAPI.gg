@@ -56,4 +56,33 @@ describe('OpenAPI validation', () => {
 
 		expect(validateDocument(spec)).toEqual([]);
 	});
+
+	it.each(['#/constructor', '#/toString'])(
+		'rejects inherited object property reference %s',
+		(reference) => {
+			const { spec } = createNewSpec();
+			spec.info.title = 'Reference API';
+			spec.info.version = '1.0.0';
+			spec.paths = {
+				'/reference': {
+					get: {
+						responses: {
+							'200': {
+								description: 'OK',
+								content: {
+									'application/json': {
+										schema: { $ref: reference }
+									}
+								}
+							}
+						}
+					}
+				}
+			};
+
+			expect(validateDocument(spec).map((diagnostic) => diagnostic.message)).toContain(
+				`Reference "${reference}" does not resolve.`
+			);
+		}
+	);
 });
