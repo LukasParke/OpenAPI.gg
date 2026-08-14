@@ -7,10 +7,12 @@ A browser-based editor for creating OpenAPI 3.1 documents. Specs are stored loca
 - Manage multiple local OpenAPI documents
 - Edit API metadata, servers, and server variables
 - Configure reusable security schemes and global security requirements
-- Create paths, path parameters, servers, and HTTP operations
-- Edit advanced `components` and `webhooks` objects as JSON
+- Create paths, parameters, servers, HTTP operations, request bodies, and responses
+- Build recursive schemas with properties, arrays, enums, composition, and reusable references
+- Build reusable components and named webhooks
+- Edit advanced OpenAPI fields and specification extensions as JSON
 - Import JSON or YAML and export either format
-- Light and dark themes
+- Select color themes and light or dark mode
 
 All document data stays in your browser unless you explicitly download or upload a file.
 
@@ -29,6 +31,7 @@ The development server is available at `http://localhost:5173`.
 
 ```bash
 pnpm check
+pnpm test
 pnpm lint
 pnpm build
 ```

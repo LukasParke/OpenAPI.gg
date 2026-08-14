@@ -29,12 +29,20 @@ export const addPath = (modalStore: ModalStore, startingPoint: string = '/') => 
 
 			// Check if path already exists
 			if (!pathExists(userPath)) {
-				alert('Path already exists');
+				modalStore.trigger({
+					type: 'alert',
+					title: 'Path already exists',
+					body: `The path "${userPath}" is already in this document.`
+				});
 				return;
 			}
 			// Check if path is valid
 			if (!isValidPath(userPath)) {
-				alert('Invalid path');
+				modalStore.trigger({
+					type: 'alert',
+					title: 'Invalid path',
+					body: 'Paths must start with / and use unique variables wrapped in curly braces.'
+				});
 				return;
 			}
 
@@ -72,12 +80,20 @@ export const renamePath = (modalStore: ModalStore, oldPath: string) => {
 
 			// Check if path already exists
 			if (!pathExists(userPath)) {
-				alert('Path already exists');
+				modalStore.trigger({
+					type: 'alert',
+					title: 'Path already exists',
+					body: `The path "${userPath}" is already in this document.`
+				});
 				return;
 			}
 			// Check if path is valid
 			if (!isValidPath(userPath)) {
-				alert('Invalid path');
+				modalStore.trigger({
+					type: 'alert',
+					title: 'Invalid path',
+					body: 'Paths must start with / and use unique variables wrapped in curly braces.'
+				});
 				return;
 			}
 

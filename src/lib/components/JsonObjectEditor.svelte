@@ -1,7 +1,8 @@
 <script lang="ts">
 	export let title: string;
 	export let description: string;
-	export let value: Record<string, unknown>;
+	export let value: unknown;
+	export let onApply: (value: Record<string, unknown>) => void = () => {};
 
 	let source = '';
 	let previousValue = '';
@@ -20,6 +21,7 @@
 				throw new Error('The value must be a JSON object.');
 			}
 			value = parsed;
+			onApply(parsed);
 			previousValue = JSON.stringify(parsed, null, 2);
 			source = previousValue;
 			errorMessage = '';

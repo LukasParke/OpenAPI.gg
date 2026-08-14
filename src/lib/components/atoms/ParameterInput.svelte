@@ -2,41 +2,37 @@
 	import type { OpenAPIV3_1 } from '$lib/openAPITypes';
 	import { SlideToggle } from '@skeletonlabs/skeleton';
 	import ExampleInput from '$lib/components/atoms/ExampleInput.svelte';
+	import SchemaEditor from '$lib/components/SchemaEditor.svelte';
 
 	export let variableName: string;
 	export let value: OpenAPIV3_1.ParameterObject;
 	export let location: 'path' | 'query' | 'header' | 'cookie';
+	export let onChange: () => void = () => {};
+	export let schemas: Record<string, OpenAPIV3_1.SchemaObject | OpenAPIV3_1.ReferenceObject> = {};
 
 	value.name = variableName;
 	value.in = location;
 	if (location === 'path') value.required = true;
 	let multipleExamples = value.examples && Object.keys(value.examples).length > 1;
+	let exampleName = '';
 
 	const addParameterExample = () => {
-		const exampleName = prompt('Enter a name for the example');
-		if (!exampleName) return;
+		const name = exampleName.trim();
+		if (!name) return;
 		value.examples ??= {};
-		value.examples[exampleName] = {
+		value.examples[name] = {
 			summary: '',
 			description: '',
 			value: ''
 		};
+		exampleName = '';
+		onChange();
 	};
 
-	const setSchemaType = (schemaType: string) => {
-		value.schema = {
-			type: schemaType as 'string' | 'number' | 'integer' | 'boolean'
-		};
-		value = value;
-	};
-
-	const getSchemaType = () => {
-		if (!value.schema || '$ref' in value.schema) return 'string';
-		return typeof value.schema.type === 'string' ? value.schema.type : 'string';
-	};
+	value.schema ??= { type: 'string' };
 </script>
 
-<div class="card py-6 px-4 flex flex-col gap-4 text-sm">
+<div class="card py-6 px-4 flex flex-col gap-4 text-sm" on:input={onChange} on:change={onChange}>
 	<h4 class="h4">{variableName}</h4>
 
 	<span class="flex items-center gap-2">
@@ -48,6 +44,8 @@
 			bind:value={location}
 			on:change={() => {
 				value.in = location;
+				value.required = location === 'path';
+				onChange();
 			}}
 		>
 			<option value="path">Path</option>
@@ -98,20 +96,10 @@
 		<SlideToggle name="allowReserved" bind:checked={value.allowReserved}>Allow Reserved</SlideToggle
 		>
 	</div>
-	<label class="space-y-2">
-		<p>Schema type</p>
-		<select
-			class="select"
-			name="schema"
-			value={getSchemaType()}
-			on:change={(event) => setSchemaType(event.currentTarget.value)}
-		>
-			<option value="string">String</option>
-			<option value="number">Number</option>
-			<option value="integer">Integer</option>
-			<option value="boolean">Boolean</option>
-		</select>
-	</label>
+	<div class="space-y-2">
+		<p>Schema</p>
+		<SchemaEditor bind:value={value.schema} {schemas} />
+	</div>
 	<SlideToggle
 		name="multiExample"
 		bind:checked={multipleExamples}
@@ -134,8 +122,10 @@
 				class="btn btn-sm variant-filled-primary"
 				on:click={addParameterExample}
 			>
+				<option value="" disabled>Select a type</option>
 				Add Example
 			</button>
+			<input class="input" bind:value={exampleName} placeholder="Example name" />
 		</div>
 	{:else}
 		<label class="space-y-2">

@@ -1,28 +1,28 @@
 <script lang="ts">
-	import type { OpenAPIV3_1 } from '$lib/openAPITypes';
+	import type { OAuthFlowValue } from '$lib/authTemplates';
 
 	export let type: 'implicit' | 'authorizationCode' | 'password' | 'clientCredentials';
-	export let flow: {
-		authorizationUrl?: string;
-		tokenUrl?: string;
-		refreshUrl?: string;
-		scopes: OpenAPIV3_1.OAuth2Scopes;
-	};
+	export let flow: OAuthFlowValue;
+	export let onChange: () => void = () => {};
+	let scopeName = '';
 
 	const addScope = () => {
-		const name = prompt('Enter scope');
-		if (!name) return;
+		const name = scopeName.trim();
+		if (!name || name in flow.scopes) return;
 		flow.scopes[name] = '';
+		scopeName = '';
 		flow = flow;
+		onChange();
 	};
 
 	const removeScope = (scope: string) => {
 		delete flow.scopes[scope];
 		flow = flow;
+		onChange();
 	};
 </script>
 
-<div class="border-token rounded-container-token p-4">
+<div class="border-token rounded-container-token p-4" on:input={onChange}>
 	<div class="ml-4 flex flex-col gap-4">
 		{#if type === 'implicit' || type === 'authorizationCode'}
 			<label>
@@ -66,7 +66,7 @@
 			<p class="text-sm">The available scopes for this flow.</p>
 			<table class="table">
 				<tbody>
-					{#each Object.keys(flow.scopes) as scope}
+					{#each Object.keys(flow.scopes) as scope (scope)}
 						<tr>
 							<td class="!text-lg">{scope}</td>
 							<td class="w-full">
@@ -92,6 +92,7 @@
 				</tbody>
 			</table>
 			<span class="w-full flex justify-center">
+				<input class="input" bind:value={scopeName} placeholder="Scope name" />
 				<button
 					type="button"
 					class="btn btn-sm variant-filled-primary"

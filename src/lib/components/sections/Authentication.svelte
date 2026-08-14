@@ -22,6 +22,7 @@
 
 	let selectedSchema: SchemeType = 'basicAuth';
 	let schemeName = 'basicAuth';
+	let errorMessage = '';
 
 	$: securitySchemes = $selectedSpec.spec.components?.securitySchemes ?? {};
 
@@ -29,7 +30,7 @@
 		const name = schemeName.trim();
 		if (!name) return;
 		if (securitySchemes[name]) {
-			alert(`A security scheme named "${name}" already exists.`);
+			errorMessage = `A security scheme named "${name}" already exists.`;
 			return;
 		}
 
@@ -38,6 +39,7 @@
 		$selectedSpec.spec.components.securitySchemes[name] = structuredClone(
 			templates[selectedSchema]
 		);
+		errorMessage = '';
 		$selectedSpec = $selectedSpec;
 	};
 
@@ -79,7 +81,7 @@
 					</button>
 				</div>
 				{#if isSecurityScheme(schema)}
-					<AuthenticationItem bind:schema />
+					<AuthenticationItem {schema} onChange={() => ($selectedSpec = $selectedSpec)} />
 				{:else}
 					<label class="space-y-2">
 						<span>Reference</span>
@@ -108,6 +110,9 @@
 				Add scheme
 			</button>
 		</div>
+		{#if errorMessage}
+			<p class="text-error-500 text-sm" role="alert">{errorMessage}</p>
+		{/if}
 	</div>
 
 	<div class="border-token rounded-container-token bg-surface-backdrop-token px-6 py-4 space-y-3">

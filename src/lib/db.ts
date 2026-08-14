@@ -68,6 +68,9 @@ export class MySubClassedDexie extends Dexie {
 	constructor() {
 		super('oasDesigner');
 		this.version(1).stores({
+			apiSpecs: '++id, name, spec'
+		});
+		this.version(2).stores({
 			apiSpecs: '++id, name'
 		});
 	}

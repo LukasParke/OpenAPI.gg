@@ -4,17 +4,23 @@
 	import OAuthFlow from '$lib/components/atoms/OAuthFlow.svelte';
 
 	export let schema: OpenAPIV3_1.SecuritySchemeObject;
+	export let onChange: () => void = () => {};
 
 	type FlowType = 'implicit' | 'password' | 'clientCredentials' | 'authorizationCode';
 	const flowTypes: FlowType[] = ['implicit', 'password', 'clientCredentials', 'authorizationCode'];
 
-	$: oauthFlows = schema.type === 'oauth2' ? schema.flows : {};
+	$: oauthFlows = schema.type === 'oauth2' ? (schema.flows ??= {}) : {};
 	$: configuredFlows = Object.keys(oauthFlows) as FlowType[];
 	$: availableFlows = flowTypes.filter((flow) => !configuredFlows.includes(flow));
 
 	let flowType: FlowType = 'implicit';
+	$: if (availableFlows.length > 0 && !availableFlows.includes(flowType)) {
+		flowType = availableFlows[0];
+	}
 	const addOauthFlow = () => {
 		if (schema.type !== 'oauth2' || !flowType) return;
+		schema.flows ??= {};
+		if (schema.flows[flowType]) return;
 		if (flowType === 'implicit') {
 			schema.flows.implicit = structuredClone(oauth2FlowTemplates.implicit);
 		} else if (flowType === 'password') {
@@ -25,17 +31,18 @@
 			schema.flows.authorizationCode = structuredClone(oauth2FlowTemplates.authorizationCode);
 		}
 		schema = schema;
-		flowType = availableFlows.find((flow) => flow !== flowType) ?? 'implicit';
+		onChange();
 	};
 
 	const removeOauthFlow = (flow: FlowType) => {
 		if (schema.type !== 'oauth2') return;
 		delete schema.flows[flow];
 		schema = schema;
+		onChange();
 	};
 </script>
 
-<div class="space-y-2">
+<div class="space-y-2" on:input={onChange} on:change={onChange}>
 	{#if schema.type === 'http' && schema.scheme === 'basic'}
 		<h3 class="h3">Basic Authentication</h3>
 		<p>
@@ -118,7 +125,7 @@
 				</button>
 			</div>
 			{#if configuredFlow}
-				<OAuthFlow type={flow} flow={configuredFlow} />
+				<OAuthFlow type={flow} flow={configuredFlow} {onChange} />
 			{/if}
 		{/each}
 
