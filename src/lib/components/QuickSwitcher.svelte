@@ -22,7 +22,8 @@
 		{ label: 'Paths', detail: 'Section', href: '/paths' },
 		{ label: 'Webhooks', detail: 'Section', href: '/webhooks' },
 		{ label: 'Components', detail: 'Section', href: '/components' },
-		{ label: 'Review', detail: 'Section', href: '/review' }
+		{ label: 'Review', detail: 'Section', href: '/review' },
+		{ label: 'API Preview', detail: 'Interactive documentation', href: '/preview' }
 	];
 
 	$: pathItems = Object.keys($selectedSpec.spec.paths ?? {}).map((path, index) => ({

@@ -14,6 +14,7 @@
 		canUndo,
 		notifyDocumentChanged,
 		redoDocument,
+		recoverDraft,
 		saveDocumentNow,
 		saveStatus,
 		syncEditorSession,
@@ -38,6 +39,7 @@
 	$: health = diagnosticCounts(validateDocument($selectedSpec.spec));
 
 	onMount(() => {
+		recoverDraft();
 		const onKeydown = (event: KeyboardEvent) => {
 			const modifier = event.metaKey || event.ctrlKey;
 			if (modifier && event.key.toLowerCase() === 'k') {

@@ -14,6 +14,8 @@ A browser-based editor for creating OpenAPI 3.1 documents. Specs are stored loca
 - Continuously validate document structure, references, parameters, operation IDs, and security
 - Undo and redo changes across editor screens
 - Autosave saved specifications and inspect exact JSON or YAML in the Review workspace
+- Recover unsaved drafts after an accidental refresh or browser restart
+- Render interactive API documentation and test requests with Scalar
 - Jump to sections, paths, and components with `Ctrl+K` or `Cmd+K`
 - Import JSON or YAML and export either format
 - Select color themes and light or dark mode

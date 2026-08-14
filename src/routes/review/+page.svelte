@@ -47,6 +47,7 @@
 		<div class="flex gap-2">
 			<span class="chip variant-soft-error">{counts.errors} errors</span>
 			<span class="chip variant-soft-warning">{counts.warnings} warnings</span>
+			<a href="/preview" class="btn btn-sm variant-filled-primary">Preview docs</a>
 		</div>
 	</header>
 

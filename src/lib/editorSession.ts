@@ -6,6 +6,7 @@ export type SaveStatus = 'unsaved' | 'saving' | 'saved' | 'error';
 const MAX_HISTORY = 100;
 const COALESCE_WINDOW_MS = 500;
 const AUTOSAVE_DELAY_MS = 900;
+const DRAFT_STORAGE_KEY = 'openapi-generator-draft';
 
 const snapshot = (spec: APISpec) => structuredClone(spec);
 const serialize = (spec: APISpec) => JSON.stringify(spec);
@@ -75,10 +76,12 @@ export class EditorHistory {
 const history = new EditorHistory();
 let autosaveTimer: ReturnType<typeof setTimeout> | undefined;
 let autosaveRevision = 0;
+let recoveredDraft = false;
 
 export const saveStatus = writable<SaveStatus>('unsaved');
 export const canUndo = writable(false);
 export const canRedo = writable(false);
+export const draftRecovered = writable(false);
 
 const updateHistoryState = () => {
 	canUndo.set(history.canUndo);
@@ -87,9 +90,14 @@ const updateHistoryState = () => {
 
 const scheduleAutosave = (spec: APISpec) => {
 	if (!spec.id || typeof window === 'undefined') {
+		if (typeof window !== 'undefined') {
+			localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(spec));
+		}
 		saveStatus.set('unsaved');
 		return;
 	}
+	localStorage.removeItem(DRAFT_STORAGE_KEY);
+	draftRecovered.set(false);
 	clearTimeout(autosaveTimer);
 	const revision = ++autosaveRevision;
 	saveStatus.set('saving');
@@ -105,6 +113,11 @@ const scheduleAutosave = (spec: APISpec) => {
 };
 
 export const syncEditorSession = (spec: APISpec) => {
+	if (spec.id && typeof window !== 'undefined') {
+		localStorage.removeItem(DRAFT_STORAGE_KEY);
+		recoveredDraft = false;
+		draftRecovered.set(false);
+	}
 	const changed = history.observe(spec);
 	updateHistoryState();
 	if (changed) scheduleAutosave(spec);
@@ -141,6 +154,9 @@ export const saveDocumentNow = async () => {
 	try {
 		const saved = await saveSpec(get(selectedSpec));
 		if (saved) {
+			if (typeof window !== 'undefined') localStorage.removeItem(DRAFT_STORAGE_KEY);
+			recoveredDraft = false;
+			draftRecovered.set(false);
 			selectedSpec.set(saved);
 			history.reset(saved);
 			updateHistoryState();
@@ -148,5 +164,29 @@ export const saveDocumentNow = async () => {
 		if (revision === autosaveRevision) saveStatus.set('saved');
 	} catch {
 		if (revision === autosaveRevision) saveStatus.set('error');
+	}
+};
+
+export const recoverDraft = () => {
+	if (recoveredDraft || typeof window === 'undefined') return recoveredDraft;
+	const stored = localStorage.getItem(DRAFT_STORAGE_KEY);
+	if (!stored) return false;
+	try {
+		const draft = JSON.parse(stored) as APISpec;
+		if (!draft || typeof draft.name !== 'string' || !draft.spec?.info) {
+			localStorage.removeItem(DRAFT_STORAGE_KEY);
+			return false;
+		}
+		draft.id = undefined;
+		selectedSpec.set(draft);
+		history.reset(draft);
+		updateHistoryState();
+		recoveredDraft = true;
+		draftRecovered.set(true);
+		saveStatus.set('unsaved');
+		return true;
+	} catch {
+		localStorage.removeItem(DRAFT_STORAGE_KEY);
+		return false;
 	}
 };

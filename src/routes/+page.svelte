@@ -9,6 +9,7 @@
 	import UploadButton from '$lib/components/FileManagement/UploadButton.svelte';
 	import { db, loadSpec, selectedSpec, selectedSpecId } from '$lib/db';
 	import { diagnosticCounts, validateDocument } from '$lib/validation';
+	import { recoverDraft } from '$lib/editorSession';
 	import { liveQuery } from 'dexie';
 	import { ProgressRadial } from '@skeletonlabs/skeleton';
 	import { onDestroy } from 'svelte';
@@ -18,6 +19,10 @@
 
 	const subscription = apiSpecs.subscribe((specs) => {
 		if (initialized) return;
+		if (recoverDraft()) {
+			initialized = true;
+			return;
+		}
 		const persistedSelection = specs.find((spec) => spec.id === $selectedSpecId);
 		if (persistedSelection) loadSpec(persistedSelection);
 		else if (!$selectedSpec.id && specs[0]) loadSpec(specs[0]);
@@ -98,6 +103,7 @@
 					<div class="flex flex-wrap gap-2">
 						<a href="/info" class="btn variant-filled-primary">Continue editing</a>
 						<a href="/review" class="btn variant-ghost-primary">Review source</a>
+						<a href="/preview" class="btn variant-ghost-primary">Preview docs</a>
 						{#if $selectedSpec.id}
 							<SaveNewButton />
 							<DeleteButton spec={$selectedSpec} width="w-auto" />

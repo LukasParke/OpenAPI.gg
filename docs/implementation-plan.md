@@ -36,3 +36,10 @@ This plan restores and completes the scope from the repository's deleted `TODO.m
 - [x] Ctrl+K quick switcher for sections, paths, and reusable components
 - [x] Review workspace with live JSON/YAML source and clipboard actions
 - [x] Integration coverage for validation and editor history
+
+## Developer experience pass
+
+- [x] Interactive API documentation and API client preview
+- [x] Crash-safe recovery for unsaved drafts
+- [x] Validated, transactional JSON/YAML imports with visible errors
+- [x] Browser-native filename handling without Node shims

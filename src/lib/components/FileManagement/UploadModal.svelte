@@ -3,6 +3,8 @@
 	import { createNewSpec, saveSpec } from '$lib/db';
 	import { loadSpec, type APISpec } from '$lib/db';
 	import type { OpenAPIV3_1 } from '$lib/openAPITypes';
+	import { normalizeImportedDocument } from '$lib/importSpec';
+	import { diagnosticCounts, validateDocument } from '$lib/validation';
 	import { FileDropzone, ProgressRadial } from '@skeletonlabs/skeleton';
 	import { SvelteComponent } from 'svelte';
 	import { writable, type Writable } from 'svelte/store';
@@ -15,6 +17,8 @@
 	let files: FileList | undefined;
 	let uploadSpec: Writable<APISpec> = writable(createNewSpec());
 	let saving = false;
+	let ready = false;
+	let errorMessage = '';
 	const extensionRegex = /\.(json|yml|yaml)$/;
 
 	$: stats = [
@@ -27,6 +31,7 @@
 			value: operationCount($uploadSpec.spec)
 		}
 	];
+	$: health = diagnosticCounts(validateDocument($uploadSpec.spec));
 
 	function onFileUpload(): void {
 		if (!files) return;
@@ -35,16 +40,18 @@
 		reader.onload = () => {
 			const result = reader.result as string;
 			const isJson = file.name.endsWith('.json');
-			let content: OpenAPIV3_1.Document;
 			try {
-				if (isJson) {
-					content = JSON.parse(result);
-				} else {
-					content = parse(result);
-				}
+				const parsed: unknown = isJson ? JSON.parse(result) : parse(result);
+				const content: OpenAPIV3_1.Document = normalizeImportedDocument(parsed);
 				uploadSpec.set({ name: file.name.replace(extensionRegex, ''), spec: content });
+				errorMessage = '';
+				ready = true;
 			} catch (error) {
-				console.error(`Error parsing ${isJson ? 'json' : 'yaml'} file`, error);
+				errorMessage =
+					error instanceof Error
+						? error.message
+						: `Unable to parse the ${isJson ? 'JSON' : 'YAML'} file.`;
+				ready = false;
 			}
 		};
 		reader.readAsText(file);
@@ -70,7 +77,13 @@
 				{stat.title}: {stat.value}
 			</p>
 		{/each}
+		<p>Health: {health.errors} errors, {health.warnings} warnings</p>
 	</div>
+	{#if errorMessage}
+		<p class="rounded-container-token variant-soft-error p-3 text-sm" role="alert">
+			{errorMessage}
+		</p>
+	{/if}
 
 	<label for="upload" class="block text-sm font-semibold text-token">
 		<span>Upload single file OpenAPI Specifications</span>
@@ -116,11 +129,19 @@
 	<div class="flex flex-row gap-2">
 		<button
 			class="btn variant-ghost-success w-full"
+			disabled={!ready || saving}
 			on:click={async () => {
 				saving = true;
-				loadSpec($uploadSpec);
-				await saveSpec($uploadSpec);
-				parent.onClose();
+				try {
+					const saved = await saveSpec($uploadSpec);
+					if (!saved) throw new Error('The specification could not be saved.');
+					loadSpec(saved);
+					parent.onClose();
+				} catch (error) {
+					errorMessage = error instanceof Error ? error.message : 'The import could not be saved.';
+				} finally {
+					saving = false;
+				}
 			}}
 		>
 			Save
