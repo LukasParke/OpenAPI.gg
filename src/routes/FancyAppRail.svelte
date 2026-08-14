@@ -2,6 +2,20 @@
 	import { page } from '$app/stores';
 	import DownloadButtons from '$lib/components/FileManagement/DownloadButtons.svelte';
 	import { AppRail, AppRailAnchor, LightSwitch } from '@skeletonlabs/skeleton';
+	import { onMount } from 'svelte';
+
+	const themes = ['skeleton', 'modern', 'rocket', 'seafoam', 'vintage', 'crimson'];
+	let theme = 'skeleton';
+
+	const applyTheme = (value: string) => {
+		theme = value;
+		document.documentElement.dataset.theme = value;
+		localStorage.setItem('openapi-theme', value);
+	};
+
+	onMount(() => {
+		applyTheme(localStorage.getItem('openapi-theme') ?? 'skeleton');
+	});
 </script>
 
 <AppRail
@@ -77,7 +91,7 @@
 		</svg>
 		Security
 	</AppRailAnchor>
-	<AppRailAnchor href="/paths" selected={$page.url.pathname === '/paths'}>
+	<AppRailAnchor href="/paths" selected={$page.url.pathname.startsWith('/paths')}>
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			fill="none"
@@ -128,12 +142,23 @@
 		</svg>
 		Components
 	</AppRailAnchor>
-	
 
 	<svelte:fragment slot="trail">
 		<div class="p-2">
 			<DownloadButtons />
 		</div>
+		<label class="block p-2 text-center text-xs">
+			<span class="font-bold">Theme</span>
+			<select
+				class="select mt-1 text-xs"
+				bind:value={theme}
+				on:change={(event) => applyTheme(event.currentTarget.value)}
+			>
+				{#each themes as themeName}
+					<option value={themeName}>{themeName}</option>
+				{/each}
+			</select>
+		</label>
 		<div class="flex justify-center my-4">
 			<LightSwitch />
 		</div>

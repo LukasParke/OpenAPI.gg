@@ -6,6 +6,7 @@
 
 	export let id: number;
 	export let server: OpenAPIV3_1.ServerObject;
+	let errorMessage = '';
 
 	const addVariables = () => {
 		if (!server.url) return;
@@ -14,6 +15,7 @@
 
 		if (!matches) {
 			server.variables = undefined;
+			errorMessage = '';
 			return;
 		}
 
@@ -23,10 +25,10 @@
 		// check if matches contains duplicates
 		const uniqueMatches = [...new Set(matches)];
 		if (uniqueMatches.length !== matches.length) {
-			// TODO: find a better way to alert the user
-			alert('Duplicate variables found in URL. Please remove duplicates.');
+			errorMessage = 'Server URL variables must be unique.';
 			return;
 		}
+		errorMessage = '';
 
 		// we now know that the matches are unique
 		// so we can create the variables object
@@ -53,6 +55,9 @@
 			bind:value={server.url}
 			on:input={addVariables}
 		/>
+		{#if errorMessage}
+			<span class="text-error-500 text-sm" role="alert">{errorMessage}</span>
+		{/if}
 	</label>
 
 	<label class="space-y-2">
@@ -86,7 +91,7 @@
 					<svelte:fragment slot="content">
 						<table class="table my-2">
 							<tbody>
-								{#each Object.keys(server.variables) as variable, index}
+								{#each Object.keys(server.variables) as variable}
 									<tr>
 										<td class="text-center">
 											<div class="flex justify-center items-center">

@@ -2,8 +2,8 @@ import type { OpenAPIV3_1 } from './openAPITypes';
 
 export const pathTemplate: OpenAPIV3_1.PathItemObject = {
 	$ref: undefined,
-	summary: "",
-	description: "",
+	summary: '',
+	description: '',
 	servers: [],
 	parameters: [],
 	get: undefined,

@@ -9,13 +9,14 @@
 		"start": "node build",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"test": "vitest run",
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write ."
 	},
 	"devDependencies": {
 		"@skeletonlabs/skeleton": "2.10.0",
 		"@skeletonlabs/tw-plugin": "0.4.0",
-		"@sveltejs/adapter-auto": "^3.2.2",
+		"@sveltejs/adapter-node": "^5.5.7",
 		"@sveltejs/kit": "^2.5.18",
 		"@sveltejs/vite-plugin-svelte": "^3.1.1",
 		"@tailwindcss/forms": "0.5.7",
@@ -41,6 +42,7 @@
 		"typescript": "^5.5.3",
 		"vite": "^5.3.3",
 		"vite-plugin-tailwind-purgecss": "0.3.3",
+		"vitest": "^2.1.9",
 		"yaml": "^2.4.5"
 	},
 	"type": "module",

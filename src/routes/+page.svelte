@@ -7,7 +7,7 @@
 	import SaveButton from '$lib/components/FileManagement/SaveButton.svelte';
 	import SaveNewButton from '$lib/components/FileManagement/SaveNewButton.svelte';
 	import UploadButton from '$lib/components/FileManagement/UploadButton.svelte';
-	import { db, loadSpec, newSpec, selectedSpec, selectedSpecId } from '$lib/db';
+	import { db, loadSpec, selectedSpec, selectedSpecId } from '$lib/db';
 	import { liveQuery } from 'dexie';
 	import { ProgressRadial } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
@@ -26,8 +26,10 @@
 				loadSpec(found);
 				specLoaded = true;
 			}
-		} else if (specs.length > 0) {
+		} else if (!$selectedSpec.id && specs.length > 0) {
 			loadSpec(specs[0]);
+			specLoaded = true;
+		} else {
 			specLoaded = true;
 		}
 	});
@@ -44,13 +46,8 @@
 	];
 
 	onMount(() => {
-		console.log('onMount', $selectedSpecId, $selectedSpec);
-		if ($selectedSpec) {
-			pageLoaded = true;
-		}
+		pageLoaded = true;
 	});
-
-	$: console.log('newSpec', newSpec, $selectedSpec, $selectedSpecId, $apiSpecs, $apiSpecs?.length, specLoaded);
 </script>
 
 <div class="grid place-content-center h-full gap-2 px-1">

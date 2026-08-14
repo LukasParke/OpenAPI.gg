@@ -1,26 +1,14 @@
 import type { OpenAPIV3_1 } from './openAPITypes';
-import { writable, type Writable } from 'svelte/store';
-
-export const localStoragePrefix = 'openapigen-';
-
 export const operationCount = (openApiDoc: OpenAPIV3_1.Document) => {
-	let count = 0;
-	for (const path in openApiDoc.paths) {
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		for (const method in openApiDoc.paths[path]) {
-			count++;
-		}
-	}
-	return count;
+	const methods = new Set(Object.values(HttpMethods));
+	return Object.values(openApiDoc.paths ?? {}).reduce((count, path) => {
+		if (!path) return count;
+		return count + Object.keys(path).filter((key) => methods.has(key as HttpMethods)).length;
+	}, 0);
 };
 
 export const pathCount = (openApiDoc: OpenAPIV3_1.Document) => {
-	let count = 0;
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	for (const path in openApiDoc.paths) {
-		count++;
-	}
-	return count;
+	return Object.keys(openApiDoc.paths ?? {}).filter((path) => !path.startsWith('x-')).length;
 };
 
 export enum HttpMethods {

@@ -22,7 +22,12 @@ export default {
 					{
 						name: 'skeleton',
 						enhancements: true
-					}
+					},
+					{ name: 'modern', enhancements: true },
+					{ name: 'rocket', enhancements: true },
+					{ name: 'seafoam', enhancements: true },
+					{ name: 'vintage', enhancements: true },
+					{ name: 'crimson', enhancements: true }
 				]
 			}
 		})

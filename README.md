@@ -1,38 +1,48 @@
-# create-svelte
+# OpenAPI Generator
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).
+A browser-based editor for creating OpenAPI 3.1 documents. Specs are stored locally in IndexedDB and can be imported or exported as JSON and YAML.
 
-## Creating a project
+## Features
 
-If you're seeing this, you've probably already done this step. Congrats!
+- Manage multiple local OpenAPI documents
+- Edit API metadata, servers, and server variables
+- Configure reusable security schemes and global security requirements
+- Create paths, parameters, servers, HTTP operations, request bodies, and responses
+- Build recursive schemas with properties, arrays, enums, composition, and reusable references
+- Build reusable components and named webhooks
+- Edit advanced OpenAPI fields and specification extensions as JSON
+- Import JSON or YAML and export either format
+- Select color themes and light or dark mode
 
-```bash
-# create a new project in the current directory
-npm create svelte@latest
+All document data stays in your browser unless you explicitly download or upload a file.
 
-# create a new project in my-app
-npm create svelte@latest my-app
-```
+## Development
 
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
+Requires Node.js and pnpm.
 
 ```bash
-npm run build
+pnpm install
+pnpm dev
 ```
 
-You can preview the production build with `npm run preview`.
+The development server is available at `http://localhost:5173`.
 
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+## Verification
+
+```bash
+pnpm check
+pnpm test
+pnpm lint
+pnpm build
+```
+
+## Production
+
+Build and start the Node server:
+
+```bash
+pnpm build
+pnpm start
+```
+
+The server uses the standard SvelteKit adapter-node environment variables, including `HOST` and `PORT`.

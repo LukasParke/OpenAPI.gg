@@ -1,9 +1,5 @@
 <script lang="ts">
-	import {
-		addPath,
-		deletePath,
-		renamePath
-	} from '$lib';
+	import { addPath, deletePath, renamePath } from '$lib';
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	const modalStore = getModalStore();
 
