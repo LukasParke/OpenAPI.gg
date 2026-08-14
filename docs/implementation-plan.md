@@ -27,3 +27,12 @@ This plan restores and completes the scope from the repository's deleted `TODO.m
 - [x] Breadcrumbs
 - [x] Integration tests for document creation and editing
 - [x] Keep type checking, linting, build, and production smoke tests green
+
+## Product-quality pass
+
+- [x] Continuous OpenAPI document validation with actionable diagnostics
+- [x] Autosave for saved specifications with visible save status
+- [x] Cross-screen undo and redo with keyboard shortcuts
+- [x] Ctrl+K quick switcher for sections, paths, and reusable components
+- [x] Review workspace with live JSON/YAML source and clipboard actions
+- [x] Integration coverage for validation and editor history
