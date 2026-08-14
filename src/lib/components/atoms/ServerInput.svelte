@@ -86,7 +86,7 @@
 					<svelte:fragment slot="content">
 						<table class="table my-2">
 							<tbody>
-								{#each Object.keys(server.variables) as variable, index}
+								{#each Object.keys(server.variables) as variable}
 									<tr>
 										<td class="text-center">
 											<div class="flex justify-center items-center">

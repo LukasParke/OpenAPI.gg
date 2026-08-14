@@ -15,19 +15,29 @@
 	const addParameterExample = () => {
 		const exampleName = prompt('Enter a name for the example');
 		if (!exampleName) return;
-		// @ts-expect-error - working we are setting a new key
+		value.examples ??= {};
 		value.examples[exampleName] = {
-			$ref: '',
 			summary: '',
 			description: '',
-			value: '',
-			externalValue: ''
+			value: ''
 		};
+	};
+
+	const setSchemaType = (schemaType: string) => {
+		value.schema = {
+			type: schemaType as 'string' | 'number' | 'integer' | 'boolean'
+		};
+		value = value;
+	};
+
+	const getSchemaType = () => {
+		if (!value.schema || '$ref' in value.schema) return 'string';
+		return typeof value.schema.type === 'string' ? value.schema.type : 'string';
 	};
 </script>
 
 <div class="card py-6 px-4 flex flex-col gap-4 text-sm">
-	<h4 class="h4">&lbrace;{variableName}&rbrace;</h4>
+	<h4 class="h4">{variableName}</h4>
 
 	<span class="flex items-center gap-2">
 		<p>Location:</p>
@@ -36,6 +46,9 @@
 			class="select w-min"
 			disabled={location === 'path'}
 			bind:value={location}
+			on:change={() => {
+				value.in = location;
+			}}
 		>
 			<option value="path">Path</option>
 			<option value="query">Query</option>
@@ -61,7 +74,7 @@
 		</SlideToggle>
 		<SlideToggle
 			name="allowEmptyValue"
-			bind:value={value.allowEmptyValue}
+			bind:checked={value.allowEmptyValue}
 			disabled={location === 'path'}
 		>
 			Allow Empty Value
@@ -86,10 +99,17 @@
 		>
 	</div>
 	<label class="space-y-2">
-		<p>Schema</p>
-		<!-- Subject to change -->
-		<select class="select" name="schema" bind:value={value.schema}>
-			<option value="schema">Schema not yet implemented</option>
+		<p>Schema type</p>
+		<select
+			class="select"
+			name="schema"
+			value={getSchemaType()}
+			on:change={(event) => setSchemaType(event.currentTarget.value)}
+		>
+			<option value="string">String</option>
+			<option value="number">Number</option>
+			<option value="integer">Integer</option>
+			<option value="boolean">Boolean</option>
 		</select>
 	</label>
 	<SlideToggle
@@ -108,7 +128,6 @@
 				{#each Object.entries(value.examples) as example}
 					<ExampleInput bind:example={example[1]} name={example[0]} />
 				{/each}
-				
 			{/if}
 			<button
 				type="button"
@@ -121,7 +140,13 @@
 	{:else}
 		<label class="space-y-2">
 			<p>Example</p>
-			<input type="text" class="input" name="example" placeholder="An example of the value." />
+			<input
+				type="text"
+				class="input"
+				name="example"
+				bind:value={value.example}
+				placeholder="An example of the value."
+			/>
 		</label>
 	{/if}
 </div>

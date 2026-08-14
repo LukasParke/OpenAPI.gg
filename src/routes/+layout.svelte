@@ -3,20 +3,14 @@
 
 	import { AppShell, type ModalComponent } from '@skeletonlabs/skeleton';
 	import '../app.postcss';
-// Floating UI for Popups
-	import { arrow, autoUpdate, computePosition, flip, offset, shift } from '@floating-ui/dom';
-	import { storePopup } from '@skeletonlabs/skeleton';
-// Modal
+	// Modal
 	import { initializeStores, Modal } from '@skeletonlabs/skeleton';
 	import UploadModal from '$lib/components/FileManagement/UploadModal.svelte';
 	initializeStores();
 
 	const components: Record<string, ModalComponent> = {
-	// Set a unique modal ID, then pass the component reference
-	uploadModal: { ref: UploadModal },
-	// ...
-};
-
+		uploadModal: { ref: UploadModal }
+	};
 </script>
 
 <Modal {components} />

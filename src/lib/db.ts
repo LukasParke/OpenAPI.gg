@@ -1,7 +1,7 @@
-import type { OpenAPIV3_1 } from "$lib/openAPITypes";
+import type { OpenAPIV3_1 } from '$lib/openAPITypes';
 import Dexie, { type Table } from 'dexie';
-import { persisted } from "svelte-persisted-store";
-import { writable, type Writable } from "svelte/store";
+import { persisted } from 'svelte-persisted-store';
+import { writable, type Writable } from 'svelte/store';
 
 export const blankSpec: OpenAPIV3_1.Document = {
 	openapi: '3.1.0', // OpenAPI version
@@ -41,54 +41,53 @@ export const blankSpec: OpenAPIV3_1.Document = {
 	}
 };
 
-export const newSpec: APISpec = {
-    name: 'OpenAPI',
-    spec: blankSpec
-} as const
+export const createNewSpec = (): APISpec => ({
+	name: 'OpenAPI',
+	spec: structuredClone(blankSpec)
+});
 
-export const selectedSpecId: Writable<string | undefined> = persisted("selectedSpecId",undefined)
-export const selectedSpec: Writable<APISpec> = writable(newSpec)
+export const newSpec: APISpec = createNewSpec();
+export const selectedSpecId: Writable<string | undefined> = persisted('selectedSpecId', undefined);
+export const selectedSpec: Writable<APISpec> = writable(createNewSpec());
 
 selectedSpec.subscribe((spec) => {
-    if(!spec){
-        spec = structuredClone(newSpec)
-    }
-    if(spec.id){
-        selectedSpecId.set(spec.id)
-    }
-})
+	if (spec?.id) {
+		selectedSpecId.set(spec.id);
+	}
+});
 
 export interface APISpec {
-    id?: string;
-    name: string;
-    spec: OpenAPIV3_1.Document;
+	id?: string;
+	name: string;
+	spec: OpenAPIV3_1.Document;
 }
 
 export class MySubClassedDexie extends Dexie {
-    apiSpecs!: Table<APISpec>;
+	apiSpecs!: Table<APISpec>;
 
-    constructor() {
-        super('oasDesigner');
-        this.version(1).stores({
-            apiSpecs: '++id, name, spec', // Primary key and indexed props
-        });
-    }
+	constructor() {
+		super('oasDesigner');
+		this.version(1).stores({
+			apiSpecs: '++id, name'
+		});
+	}
 }
 
 export const db = new MySubClassedDexie();
 
 export const loadSpec = (spec: APISpec) => {
-    selectedSpec.set(spec)
-    selectedSpecId.set(spec.id!)
-}
+	const clonedSpec = structuredClone(spec);
+	selectedSpec.set(clonedSpec);
+	selectedSpecId.set(clonedSpec.id);
+};
 
 export const saveSpec = async (spec: APISpec) => {
-    const clonedSpec = structuredClone(spec)
-    let specID
-    if (clonedSpec.id) {
-        specID = await db.apiSpecs.put(clonedSpec, clonedSpec.id)
-    } else {
-        specID = await db.apiSpecs.add(clonedSpec)
-    }
-    return await db.apiSpecs.get(specID)
-}
+	const clonedSpec = structuredClone(spec);
+	let specID;
+	if (clonedSpec.id) {
+		specID = await db.apiSpecs.put(clonedSpec, clonedSpec.id);
+	} else {
+		specID = await db.apiSpecs.add(clonedSpec);
+	}
+	return await db.apiSpecs.get(specID);
+};

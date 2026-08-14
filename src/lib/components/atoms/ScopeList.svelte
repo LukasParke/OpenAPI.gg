@@ -6,7 +6,7 @@
 	const addScope = () => {
 		// Correctly adds a new key with a string value to the scopes object
 		// @ts-expect-error - This is a valid operation
-		flow.scopes["newScope"] = "placeholder";
+		flow.scopes['newScope'] = 'placeholder';
 	};
 
 	const removeScope = (key: string) => {

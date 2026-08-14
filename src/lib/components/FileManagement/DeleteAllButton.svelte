@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { newSpec } from '$lib/db';
-	import { db, loadSpec, type APISpec } from '$lib/db';
+	import { db, loadSpec } from '$lib/db';
 	import type { CssClasses } from '@skeletonlabs/skeleton';
 
-	export let width: CssClasses = "w-full"
+	export let width: CssClasses = 'w-full';
 </script>
 
 <button

@@ -1,7 +1,18 @@
 <script lang="ts">
-	import type { PageData } from './$types';
+	import JsonObjectEditor from '$lib/components/JsonObjectEditor.svelte';
+	import { selectedSpec } from '$lib/db';
+	import type { OpenAPIV3_1 } from '$lib/openAPITypes';
 
-	export let data: PageData;
+	let components: Record<string, unknown> = $selectedSpec.spec.components ?? {};
+
+	$: {
+		$selectedSpec.spec.components = components as OpenAPIV3_1.ComponentsObject;
+		$selectedSpec = $selectedSpec;
+	}
 </script>
 
-components/+page.svelte
+<JsonObjectEditor
+	title="Reusable components"
+	description="Edit schemas, responses, parameters, examples, request bodies, headers, links, callbacks, and path items."
+	bind:value={components}
+/>

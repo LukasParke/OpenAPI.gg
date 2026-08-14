@@ -32,7 +32,7 @@ export const oauth2AuthTemplate: OpenAPIV3_1.OAuth2SecurityScheme = {
 	description: undefined
 };
 
-const baseOauth2Flow: Oauth2.Oauth2Flow = {
+const baseOauth2Flow = {
 	authorizationUrl: '',
 	scopes: {},
 	refreshUrl: undefined
@@ -40,8 +40,16 @@ const baseOauth2Flow: Oauth2.Oauth2Flow = {
 
 export const oauth2FlowTemplates: Oauth2.Oauth2FlowTemplates = {
 	implicit: baseOauth2Flow,
-	password: baseOauth2Flow,
-	clientCredentials: baseOauth2Flow,
+	password: {
+		tokenUrl: '',
+		scopes: {},
+		refreshUrl: undefined
+	},
+	clientCredentials: {
+		tokenUrl: '',
+		scopes: {},
+		refreshUrl: undefined
+	},
 	authorizationCode: {
 		...baseOauth2Flow,
 		tokenUrl: ''

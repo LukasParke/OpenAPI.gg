@@ -10,15 +10,16 @@ declare namespace App {
 
 declare namespace Oauth2 {
 	interface Oauth2Flow {
-		authorizationUrl: string;
+		authorizationUrl?: string;
+		tokenUrl?: string;
 		scopes: Record<string, string>;
 		refreshUrl?: string;
 	}
 
 	interface Oauth2FlowTemplates {
-		implicit: Oauth2Flow;
-		password: Oauth2Flow;
-		clientCredentials: Oauth2Flow;
-		authorizationCode: Oauth2Flow & { tokenUrl: string };
+		implicit: Oauth2Flow & { authorizationUrl: string };
+		password: Oauth2Flow & { tokenUrl: string };
+		clientCredentials: Oauth2Flow & { tokenUrl: string };
+		authorizationCode: Oauth2Flow & { authorizationUrl: string; tokenUrl: string };
 	}
 }

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { newSpec, loadSpec } from '$lib/db';
+	import { createNewSpec, loadSpec } from '$lib/db';
 </script>
 
 <button
@@ -10,7 +10,7 @@
 				'This operation clears all the current values, unsaved data will be lost, are you sure?'
 			)
 		) {
-			loadSpec(structuredClone(newSpec));
+			loadSpec(createNewSpec());
 		}
 	}}
 >

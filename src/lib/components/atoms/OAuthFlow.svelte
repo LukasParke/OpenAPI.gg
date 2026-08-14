@@ -1,34 +1,48 @@
 <script lang="ts">
+	import type { OpenAPIV3_1 } from '$lib/openAPITypes';
+
 	export let type: 'implicit' | 'authorizationCode' | 'password' | 'clientCredentials';
-	export let flow: Oauth2.Oauth2Flow | (Oauth2.Oauth2Flow & { tokenUrl: string });
+	export let flow: {
+		authorizationUrl?: string;
+		tokenUrl?: string;
+		refreshUrl?: string;
+		scopes: OpenAPIV3_1.OAuth2Scopes;
+	};
 
 	const addScope = () => {
 		const name = prompt('Enter scope');
 		if (!name) return;
 		flow.scopes[name] = '';
+		flow = flow;
 	};
-	const removeScope = (index: number) => {};
+
+	const removeScope = (scope: string) => {
+		delete flow.scopes[scope];
+		flow = flow;
+	};
 </script>
 
 <div class="border-token rounded-container-token p-4">
 	<div class="ml-4 flex flex-col gap-4">
-		<label>
-			<h5 class="h5">Authorization URL</h5>
-			<p class="text-sm">The authorization URL to be used for this flow.</p>
-			<input
-				type="text"
-				name="authorizationURL"
-				class="input"
-				placeholder="https://api.example.com/oauth2/authorize"
-				bind:value={flow.authorizationUrl}
-			/>
-		</label>
-		{#if type === 'authorizationCode' && 'tokenUrl' in flow}
+		{#if type === 'implicit' || type === 'authorizationCode'}
+			<label>
+				<h5 class="h5">Authorization URL</h5>
+				<p class="text-sm">The authorization URL to be used for this flow.</p>
+				<input
+					type="url"
+					name="authorizationURL"
+					class="input"
+					placeholder="https://api.example.com/oauth2/authorize"
+					bind:value={flow.authorizationUrl}
+				/>
+			</label>
+		{/if}
+		{#if type !== 'implicit'}
 			<label>
 				<h5 class="h5">Token URL</h5>
 				<p class="text-sm">The token URL to be used for this flow.</p>
 				<input
-					type="text"
+					type="url"
 					name="tokenURL"
 					class="input"
 					placeholder="https://api.example.com/oauth2/token"
@@ -40,29 +54,27 @@
 			<h5 class="h5">Refresh URL</h5>
 			<p class="text-sm">The refresh URL to be used for this flow. (optional)</p>
 			<input
-				type="text"
+				type="url"
 				name="refreshURL"
 				class="input"
 				placeholder="https://api.example.com/oauth2/refresh"
 				bind:value={flow.refreshUrl}
 			/>
 		</label>
-		<label>
+		<div>
 			<h5 class="h5">Scopes</h5>
 			<p class="text-sm">The available scopes for this flow.</p>
 			<table class="table">
 				<tbody>
-					{#each Object.keys(flow.scopes) as scope, index}
+					{#each Object.keys(flow.scopes) as scope}
 						<tr>
-							<td class="!text-lg">
-								{scope}
-							</td>
+							<td class="!text-lg">{scope}</td>
 							<td class="w-full">
 								<input
 									type="text"
 									name="scope"
 									class="input"
-									placeholder="description of the scope"
+									placeholder="Description of the scope"
 									bind:value={flow.scopes[scope]}
 								/>
 							</td>
@@ -70,7 +82,7 @@
 								<button
 									type="button"
 									class="btn variant-ringed-error hover:variant-filled-error"
-									on:click={() => removeScope(index)}
+									on:click={() => removeScope(scope)}
 								>
 									Remove
 								</button>
@@ -89,6 +101,6 @@
 					Add Scope
 				</button>
 			</span>
-		</label>
+		</div>
 	</div>
 </div>

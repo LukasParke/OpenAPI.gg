@@ -77,7 +77,7 @@
 		</svg>
 		Security
 	</AppRailAnchor>
-	<AppRailAnchor href="/paths" selected={$page.url.pathname === '/paths'}>
+	<AppRailAnchor href="/paths" selected={$page.url.pathname.startsWith('/paths')}>
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			fill="none"
@@ -128,7 +128,6 @@
 		</svg>
 		Components
 	</AppRailAnchor>
-	
 
 	<svelte:fragment slot="trail">
 		<div class="p-2">

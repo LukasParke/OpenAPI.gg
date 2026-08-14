@@ -4,10 +4,9 @@
 
 	export let spec: APISpec;
 
-		export let width: CssClasses = "w-full"
+	export let width: CssClasses = 'w-full';
 
-	function onLoad(e: Event): void {
-		console.log('load button clicked');
+	function onLoad(): void {
 		loadSpec(spec);
 	}
 </script>

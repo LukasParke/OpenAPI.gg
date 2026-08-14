@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { pathCount, operationCount } from '$lib';
-	import { newSpec, saveSpec } from '$lib/db';
+	import { createNewSpec, saveSpec } from '$lib/db';
 	import { loadSpec, type APISpec } from '$lib/db';
 	import type { OpenAPIV3_1 } from '$lib/openAPITypes';
 	import { FileDropzone, ProgressRadial } from '@skeletonlabs/skeleton';
-	import { onMount, SvelteComponent } from 'svelte';
+	import { SvelteComponent } from 'svelte';
 	import { writable, type Writable } from 'svelte/store';
 	import { parse } from 'yaml';
 
@@ -13,7 +13,7 @@
 	export let parent: SvelteComponent;
 
 	let files: FileList | undefined;
-	let uploadSpec: Writable<APISpec> = writable(newSpec);
+	let uploadSpec: Writable<APISpec> = writable(createNewSpec());
 	let saving = false;
 	const extensionRegex = /\.(json|yml|yaml)$/;
 
@@ -28,8 +28,7 @@
 		}
 	];
 
-	function onFileUpload(e: Event): void {
-		console.log('onFileUpload');
+	function onFileUpload(): void {
 		if (!files) return;
 		const file = files[0];
 		const reader = new FileReader();
