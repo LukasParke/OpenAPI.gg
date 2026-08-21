@@ -108,7 +108,7 @@
 			<span>Summary</span>
 			<input
 				class="input"
-				value={operation.summary}
+				value={operation.summary ?? ''}
 				on:input={(event) => setOptionalText('summary', event.currentTarget.value)}
 			/>
 		</label>
@@ -116,7 +116,7 @@
 			<span>Operation ID</span>
 			<input
 				class="input"
-				value={operation.operationId}
+				value={operation.operationId ?? ''}
 				on:input={(event) => setOptionalText('operationId', event.currentTarget.value)}
 			/>
 		</label>
@@ -125,7 +125,7 @@
 		<span>Description</span>
 		<textarea
 			class="textarea"
-			value={operation.description}
+			value={operation.description ?? ''}
 			on:input={(event) => setOptionalText('description', event.currentTarget.value)}
 		/>
 	</label>
@@ -150,7 +150,7 @@
 			<input
 				type="url"
 				class="input"
-				value={operation.externalDocs?.url}
+				value={operation.externalDocs?.url ?? ''}
 				on:input={(event) => setExternalDocs('url', event.currentTarget.value)}
 			/>
 		</label>
@@ -158,7 +158,7 @@
 			<span>External documentation description</span>
 			<input
 				class="input"
-				value={operation.externalDocs?.description}
+				value={operation.externalDocs?.description ?? ''}
 				on:input={(event) => setExternalDocs('description', event.currentTarget.value)}
 			/>
 		</label>

@@ -7,28 +7,12 @@
 	import SaveButton from '$lib/components/FileManagement/SaveButton.svelte';
 	import SaveNewButton from '$lib/components/FileManagement/SaveNewButton.svelte';
 	import UploadButton from '$lib/components/FileManagement/UploadButton.svelte';
-	import { db, loadSpec, selectedSpec, selectedSpecId } from '$lib/db';
+	import { db, selectedSpec } from '$lib/db';
 	import { diagnosticCounts, validateDocument } from '$lib/validation';
-	import { recoverDraft } from '$lib/editorSession';
 	import { liveQuery } from 'dexie';
 	import { ProgressRadial } from '@skeletonlabs/skeleton';
-	import { onDestroy } from 'svelte';
 
 	const apiSpecs = liveQuery(() => db.apiSpecs.toArray());
-	let initialized = false;
-
-	const subscription = apiSpecs.subscribe((specs) => {
-		if (initialized) return;
-		if (recoverDraft()) {
-			initialized = true;
-			return;
-		}
-		const persistedSelection = specs.find((spec) => spec.id === $selectedSpecId);
-		if (persistedSelection) loadSpec(persistedSelection);
-		else if (!$selectedSpec.id && specs[0]) loadSpec(specs[0]);
-		initialized = true;
-	});
-	onDestroy(() => subscription.unsubscribe());
 
 	$: componentCount = Object.values($selectedSpec.spec.components ?? {}).reduce(
 		(total, section) => total + Object.keys(section ?? {}).length,
@@ -48,7 +32,7 @@
 	<title>OpenAPI Generator</title>
 </svelte:head>
 
-{#if !initialized}
+{#if $apiSpecs === undefined}
 	<div class="grid min-h-[60vh] place-content-center">
 		<ProgressRadial />
 	</div>

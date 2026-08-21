@@ -1,5 +1,5 @@
 import { get, writable } from 'svelte/store';
-import { selectedSpec, saveSpec, type APISpec } from './db';
+import { db, loadSpec, selectedSpec, selectedSpecId, saveSpec, type APISpec } from './db';
 
 export type SaveStatus = 'unsaved' | 'saving' | 'saved' | 'error';
 
@@ -91,6 +91,7 @@ const persistence = new PersistenceQueue();
 let autosaveTimer: ReturnType<typeof setTimeout> | undefined;
 let autosaveRevision = 0;
 let recoveredDraft = false;
+let restored = false;
 
 export const saveStatus = writable<SaveStatus>('unsaved');
 export const canUndo = writable(false);
@@ -204,4 +205,19 @@ export const recoverDraft = () => {
 		localStorage.removeItem(DRAFT_STORAGE_KEY);
 		return false;
 	}
+};
+
+export const restoreSession = async (): Promise<boolean> => {
+	if (restored || typeof window === 'undefined') return restored;
+	if (recoverDraft()) {
+		restored = true;
+		return true;
+	}
+	const specs = await db.apiSpecs.toArray();
+	const selectionId = get(selectedSpecId);
+	const match = specs.find((spec) => spec.id === selectionId);
+	if (match) loadSpec(match);
+	else if (!get(selectedSpec).id && specs[0]) loadSpec(specs[0]);
+	restored = true;
+	return true;
 };

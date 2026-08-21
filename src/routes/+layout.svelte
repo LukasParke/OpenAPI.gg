@@ -12,9 +12,10 @@
 	import {
 		canRedo,
 		canUndo,
+		draftRecovered,
 		notifyDocumentChanged,
 		redoDocument,
-		recoverDraft,
+		restoreSession,
 		saveDocumentNow,
 		saveStatus,
 		syncEditorSession,
@@ -39,7 +40,7 @@
 	$: health = diagnosticCounts(validateDocument($selectedSpec.spec));
 
 	onMount(() => {
-		recoverDraft();
+		restoreSession();
 		const onKeydown = (event: KeyboardEvent) => {
 			const modifier = event.metaKey || event.ctrlKey;
 			if (modifier && event.key.toLowerCase() === 'k') {
@@ -120,6 +121,24 @@
 				<span class="min-w-16 text-right text-xs capitalize opacity-60">{$saveStatus}</span>
 			</div>
 		</div>
+		{#if $draftRecovered}
+			<div
+				class="flex flex-wrap items-center justify-between gap-2 rounded-container-token border border-warning-500 bg-warning-50 px-4 py-2 text-sm dark:bg-warning-500/10"
+				role="status"
+			>
+				<span>Recovered an unsaved draft from your previous session.</span>
+				<div class="flex gap-2">
+					<button
+						type="button"
+						class="btn btn-sm variant-filled-primary"
+						on:click={saveDocumentNow}
+					>
+						Save now
+					</button>
+					<button type="button" on:click={() => draftRecovered.set(false)}> Dismiss </button>
+				</div>
+			</div>
+		{/if}
 		<slot />
 	</div>
 </AppShell>
