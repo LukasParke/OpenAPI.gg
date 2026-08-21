@@ -16,10 +16,10 @@
 					bind:value={$selectedSpec.spec.info.license.identifier}
 					on:change={() => {
 						// @ts-expect-error - This is literally inside a null check
-						$selectedSpec.spec.info.license.url = null
+						$selectedSpec.spec.info.license.url = null;
 						// @ts-expect-error - This is only running on identifier change
 						$selectedSpec.spec.info.license.name =
-						// @ts-expect-error - This is only running on identifier change
+							// @ts-expect-error - This is only running on identifier change
 							spdxLicenseList[$selectedSpec.spec.info.license.identifier].name;
 					}}
 				>

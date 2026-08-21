@@ -25,23 +25,32 @@ export const addPath = (modalStore: ModalStore, startingPoint: string = '/') => 
 			if (r === false) return;
 			if (typeof r !== 'string') return;
 
-			userPath = r;
+			userPath = r.trim();
 
 			// Check if path already exists
 			if (!pathExists(userPath)) {
-				alert('Path already exists');
+				modalStore.trigger({
+					type: 'alert',
+					title: 'Path already exists',
+					body: `The path "${userPath}" is already in this document.`
+				});
 				return;
 			}
 			// Check if path is valid
 			if (!isValidPath(userPath)) {
-				alert('Invalid path');
+				modalStore.trigger({
+					type: 'alert',
+					title: 'Invalid path',
+					body: 'Paths must start with / and use unique variables wrapped in curly braces.'
+				});
 				return;
 			}
 
 			// create path object
 			const store = get(selectedSpec);
 			if (!store.spec.paths) store.spec.paths = {};
-			store.spec.paths[userPath] = pathTemplate;
+			store.spec.paths[userPath] = structuredClone(pathTemplate);
+			selectedSpec.set(store);
 
 			// sort paths alphabetically
 			sortPathsAlphabetically();
@@ -66,16 +75,25 @@ export const renamePath = (modalStore: ModalStore, oldPath: string) => {
 			if (r === false) return;
 			if (typeof r !== 'string') return;
 
-			userPath = r;
+			userPath = r.trim();
+			if (userPath === oldPath) return;
 
 			// Check if path already exists
 			if (!pathExists(userPath)) {
-				alert('Path already exists');
+				modalStore.trigger({
+					type: 'alert',
+					title: 'Path already exists',
+					body: `The path "${userPath}" is already in this document.`
+				});
 				return;
 			}
 			// Check if path is valid
 			if (!isValidPath(userPath)) {
-				alert('Invalid path');
+				modalStore.trigger({
+					type: 'alert',
+					title: 'Invalid path',
+					body: 'Paths must start with / and use unique variables wrapped in curly braces.'
+				});
 				return;
 			}
 
@@ -123,7 +141,7 @@ export const deletePath = (modalStore: ModalStore, path: string) => {
 /// checks if a given path already exists
 export const pathExists = (path: string) => {
 	const store = get(selectedSpec);
-	return !(path in store.spec.paths!);
+	return !(path in (store.spec.paths ?? {}));
 };
 
 /// checks if a given path is valid
@@ -137,12 +155,7 @@ export const isValidPath = (path: string) => {
 	}
 
 	// check if path is a valid path
-	const pathWithoutVariables = path.replaceAll('{', '').replaceAll('}', '');
-	console.log(pathWithoutVariables);
-	const pathRegex = /(\/[a-zA-Z0-9]+)+|\//gm;
-	const pathParts = pathWithoutVariables.match(pathRegex);
-	// the fallback is to return false if the pathParts array is null
-	return pathParts?.length === 1;
+	return /^\/(?:[^/{}]+|\{[^/{}]+\})(?:\/(?:[^/{}]+|\{[^/{}]+\}))*$|^\/$/.test(path);
 };
 
 /// sorts the paths in the OpenAPI document alphabetically
@@ -172,7 +185,7 @@ export const getPathVariables = (path: string) => {
 };
 
 export const sortPathParameters = (parameters: OpenAPIV3_1.ParameterObject[]) => {
-	const tempParameters = parameters;
+	const tempParameters = [...parameters];
 	tempParameters.sort((a, b) => {
 		if (a.in < b.in) return -1;
 		if (a.in > b.in) return 1;

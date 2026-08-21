@@ -2,6 +2,20 @@
 	import { page } from '$app/stores';
 	import DownloadButtons from '$lib/components/FileManagement/DownloadButtons.svelte';
 	import { AppRail, AppRailAnchor, LightSwitch } from '@skeletonlabs/skeleton';
+	import { onMount } from 'svelte';
+
+	const themes = ['skeleton', 'modern', 'rocket', 'seafoam', 'vintage', 'crimson'];
+	let theme = 'skeleton';
+
+	const applyTheme = (value: string) => {
+		theme = value;
+		document.documentElement.dataset.theme = value;
+		localStorage.setItem('openapi-theme', value);
+	};
+
+	onMount(() => {
+		applyTheme(localStorage.getItem('openapi-theme') ?? 'skeleton');
+	});
 </script>
 
 <AppRail
@@ -77,7 +91,7 @@
 		</svg>
 		Security
 	</AppRailAnchor>
-	<AppRailAnchor href="/paths" selected={$page.url.pathname === '/paths'}>
+	<AppRailAnchor href="/paths" selected={$page.url.pathname.startsWith('/paths')}>
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			fill="none"
@@ -128,12 +142,62 @@
 		</svg>
 		Components
 	</AppRailAnchor>
-	
+	<AppRailAnchor href="/review" selected={$page.url.pathname === '/review'}>
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			fill="none"
+			viewBox="0 0 24 24"
+			stroke-width="1.5"
+			stroke="currentColor"
+			class="size-6 mx-auto"
+		>
+			<path
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+			/>
+		</svg>
+		Review
+	</AppRailAnchor>
+	<AppRailAnchor href="/preview" selected={$page.url.pathname === '/preview'}>
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			fill="none"
+			viewBox="0 0 24 24"
+			stroke-width="1.5"
+			stroke="currentColor"
+			class="size-6 mx-auto"
+		>
+			<path
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				d="M2.25 12s3.75-6.75 9.75-6.75S21.75 12 21.75 12 18 18.75 12 18.75 2.25 12 2.25 12Z"
+			/>
+			<path
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+			/>
+		</svg>
+		Preview
+	</AppRailAnchor>
 
 	<svelte:fragment slot="trail">
 		<div class="p-2">
 			<DownloadButtons />
 		</div>
+		<label class="block p-2 text-center text-xs">
+			<span class="font-bold">Theme</span>
+			<select
+				class="select mt-1 text-xs"
+				bind:value={theme}
+				on:change={(event) => applyTheme(event.currentTarget.value)}
+			>
+				{#each themes as themeName}
+					<option value={themeName}>{themeName}</option>
+				{/each}
+			</select>
+		</label>
 		<div class="flex justify-center my-4">
 			<LightSwitch />
 		</div>

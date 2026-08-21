@@ -7,90 +7,141 @@
 		openIdAuthTemplate
 	} from '$lib/authTemplates';
 	import { selectedSpec } from '$lib/db';
+	import type { OpenAPIV3_1 } from '$lib/openAPITypes';
 	import AuthenticationItem from '../atoms/AuthenticationItem.svelte';
 
-	let selectedSchema: string;
-	const addSecuritySchema = () => {
-		let tempSchemaList = $selectedSpec.spec.security || [];
-		let newSchema;
-		switch (selectedSchema) {
-			case 'basicAuth':
-				newSchema = basicAuthTemplate;
-				break;
-			case 'bearerAuth':
-				newSchema = bearerAuthTemplate;
-				break;
-			case 'ApiKeyAuth':
-				newSchema = apiKeyAuthTemplate;
-				break;
-			case 'openId':
-				newSchema = openIdAuthTemplate;
-				break;
-			case 'oAuthSample':
-				newSchema = oauth2AuthTemplate;
-				break;
-			default:
-				newSchema = undefined;
-				break;
+	type SchemeType = 'basicAuth' | 'bearerAuth' | 'apiKeyAuth' | 'openId' | 'oauth2';
+
+	const templates: Record<SchemeType, OpenAPIV3_1.SecuritySchemeObject> = {
+		basicAuth: basicAuthTemplate,
+		bearerAuth: bearerAuthTemplate,
+		apiKeyAuth: apiKeyAuthTemplate,
+		openId: openIdAuthTemplate,
+		oauth2: oauth2AuthTemplate
+	};
+
+	let selectedSchema: SchemeType = 'basicAuth';
+	let schemeName = 'basicAuth';
+	let errorMessage = '';
+
+	$: securitySchemes = $selectedSpec.spec.components?.securitySchemes ?? {};
+
+	const addSecurityScheme = () => {
+		const name = schemeName.trim();
+		if (!name) return;
+		if (securitySchemes[name]) {
+			errorMessage = `A security scheme named "${name}" already exists.`;
+			return;
 		}
 
-		if (newSchema) {
-			tempSchemaList = [...tempSchemaList, newSchema];
-			$selectedSpec.spec.security = tempSchemaList;
-		}
+		$selectedSpec.spec.components ??= {};
+		$selectedSpec.spec.components.securitySchemes ??= {};
+		$selectedSpec.spec.components.securitySchemes[name] = structuredClone(
+			templates[selectedSchema]
+		);
+		errorMessage = '';
+		$selectedSpec = $selectedSpec;
 	};
-	const removeSecuritySchema = (index: number) => {
-		let tempSchemaList = $selectedSpec.spec.security;
-		tempSchemaList.splice(index, 1);
-		$selectedSpec.spec.security = tempSchemaList;
+
+	const removeSecurityScheme = (name: string) => {
+		if (!$selectedSpec.spec.components?.securitySchemes) return;
+		delete $selectedSpec.spec.components.securitySchemes[name];
+		$selectedSpec.spec.security = ($selectedSpec.spec.security ?? [])
+			.map((requirement) => {
+				const copy = { ...requirement };
+				delete copy[name];
+				return copy;
+			})
+			.filter((requirement) => Object.keys(requirement).length > 0);
+		$selectedSpec = $selectedSpec;
 	};
+
+	const isSecurityScheme = (
+		schema: OpenAPIV3_1.ReferenceObject | OpenAPIV3_1.SecuritySchemeObject
+	): schema is OpenAPIV3_1.SecuritySchemeObject => !('$ref' in schema);
 </script>
 
-{#if $selectedSpec.spec.security}
-	<form
-		class="border-token rounded-container-token bg-surface-backdrop-token px-6 py-4 min-h-20 space-y-4"
-	>
-		{#each $selectedSpec.spec.security as schema, index}
-			<div class="card w-full p-4">
-				<div class="flex flex-row-reverse w-full">
+<div class="space-y-4">
+	<div class="border-token rounded-container-token bg-surface-backdrop-token px-6 py-4 space-y-4">
+		<h2 class="h3">Security schemes</h2>
+		<p class="text-sm">
+			Define reusable authentication schemes under <code>components.securitySchemes</code>.
+		</p>
+
+		{#each Object.entries(securitySchemes) as [name, schema]}
+			<div class="card w-full p-4 space-y-3">
+				<div class="flex justify-between items-center gap-4">
+					<h3 class="h4">{name}</h3>
 					<button
 						type="button"
 						class="btn btn-sm variant-ringed-error hover:variant-filled-error"
-						on:click={() => {
-							removeSecuritySchema(index);
-						}}
+						on:click={() => removeSecurityScheme(name)}
 					>
-						Remove schema
+						Remove scheme
 					</button>
 				</div>
-				<AuthenticationItem bind:schema />
+				{#if isSecurityScheme(schema)}
+					<AuthenticationItem {schema} onChange={() => ($selectedSpec = $selectedSpec)} />
+				{:else}
+					<label class="space-y-2">
+						<span>Reference</span>
+						<input class="input" bind:value={schema.$ref} />
+					</label>
+				{/if}
 			</div>
-			<hr />
 		{/each}
 
-		<span class="flex justify-center items-center gap-2 max-w-sm mx-auto">
-			<select name="security-schema" bind:value={selectedSchema} class="input w-fit text-sm">
-				<option value="basicAuth" selected>Basic Auth</option>
-				<option value="bearerAuth">Bearer Auth</option>
-				<option value="ApiKeyAuth">API Key Auth</option>
-				<option value="openId">OpenID</option>
-				<option value="oAuthSample">OAuth2</option>
-			</select>
-			<button type="button" class="btn text-sm variant-filled-primary" on:click={addSecuritySchema}>
-				Add Security Schema
+		<div class="grid gap-2 sm:grid-cols-[1fr_1fr_auto] items-end">
+			<label class="space-y-1">
+				<span class="text-sm">Scheme name</span>
+				<input class="input" bind:value={schemeName} placeholder="bearerAuth" />
+			</label>
+			<label class="space-y-1">
+				<span class="text-sm">Scheme type</span>
+				<select bind:value={selectedSchema} class="select">
+					<option value="basicAuth">Basic Auth</option>
+					<option value="bearerAuth">Bearer Auth</option>
+					<option value="apiKeyAuth">API Key Auth</option>
+					<option value="openId">OpenID Connect</option>
+					<option value="oauth2">OAuth 2.0</option>
+				</select>
+			</label>
+			<button type="button" class="btn variant-filled-primary" on:click={addSecurityScheme}>
+				Add scheme
 			</button>
-		</span>
-	</form>
-{:else}
-	<div class="grid place-content-center h-full">
-		<p class="p-4">No security schema defined</p>
-		<button
-			class="btn variant-ghost-success"
-			on:click={() => {
-				addSecuritySchema();
-			}}
-		>
-			Add security schema
-		</button>
+		</div>
+		{#if errorMessage}
+			<p class="text-error-500 text-sm" role="alert">{errorMessage}</p>
+		{/if}
 	</div>
-{/if}
+
+	<div class="border-token rounded-container-token bg-surface-backdrop-token px-6 py-4 space-y-3">
+		<h2 class="h3">Global security requirements</h2>
+		<p class="text-sm">
+			Choose which schemes apply globally. Individual operations may override these requirements.
+		</p>
+		{#if Object.keys(securitySchemes).length === 0}
+			<p class="text-sm opacity-70">Add a security scheme first.</p>
+		{:else}
+			{#each Object.keys(securitySchemes) as name}
+				<label class="flex items-center gap-2">
+					<input
+						type="checkbox"
+						class="checkbox"
+						checked={($selectedSpec.spec.security ?? []).some((requirement) => name in requirement)}
+						on:change={(event) => {
+							const checked = event.currentTarget.checked;
+							const requirements = ($selectedSpec.spec.security ?? []).filter(
+								(requirement) => !(name in requirement)
+							);
+							if (checked) requirements.push({ [name]: [] });
+							$selectedSpec.spec.security = requirements;
+							$selectedSpec = $selectedSpec;
+						}}
+					/>
+					{name}
+				</label>
+			{/each}
+		{/if}
+	</div>
+</div>

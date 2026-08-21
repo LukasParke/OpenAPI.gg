@@ -3,7 +3,7 @@
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import type { CssClasses } from '@skeletonlabs/skeleton';
 
-export let width: CssClasses = "w-full"
+	export let width: CssClasses = 'w-full';
 
 	const modalStore = getModalStore();
 
@@ -13,4 +13,6 @@ export let width: CssClasses = "w-full"
 	};
 </script>
 
-<button class="btn variant-ghost-tertiary {width}" on:click={() => modalStore.trigger(modal)}>Upload New</button>
+<button class="btn variant-ghost-tertiary {width}" on:click={() => modalStore.trigger(modal)}
+	>Upload New</button
+>

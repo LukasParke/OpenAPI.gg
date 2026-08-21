@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { selectedSpec } from '$lib/db';
-	import filenamify from 'filenamify';
+	import { safeFilename } from '$lib/filename';
 	import { stringify } from 'yaml';
 
-	$: fileName = filenamify($selectedSpec.spec?.info?.title) || 'openapi';
+	$: fileName = safeFilename($selectedSpec.spec?.info?.title);
 
 	const saveYAML = () => {
 		if (!$selectedSpec.spec) return;

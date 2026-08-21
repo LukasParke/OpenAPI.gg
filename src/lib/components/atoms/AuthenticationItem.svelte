@@ -4,47 +4,45 @@
 	import OAuthFlow from '$lib/components/atoms/OAuthFlow.svelte';
 
 	export let schema: OpenAPIV3_1.SecuritySchemeObject;
+	export let onChange: () => void = () => {};
 
-	let availableFlows: ('implicit' | 'password' | 'clientCredentials' | 'authorizationCode')[] = [
-		'implicit',
-		'password',
-		'clientCredentials',
-		'authorizationCode'
-	];
+	type FlowType = 'implicit' | 'password' | 'clientCredentials' | 'authorizationCode';
+	const flowTypes: FlowType[] = ['implicit', 'password', 'clientCredentials', 'authorizationCode'];
 
-	// remove flows that are already in Object.keys(schema.flows)
-	availableFlows = availableFlows.filter((flow) => {
-		// if flows is not defined: skip
-		// @ts-expect-error - security schema definition is lacking a bit
-		if (!schema.flows) return;
+	$: oauthFlows = schema.type === 'oauth2' ? (schema.flows ??= {}) : {};
+	$: configuredFlows = Object.keys(oauthFlows) as FlowType[];
+	$: availableFlows = flowTypes.filter((flow) => !configuredFlows.includes(flow));
 
-		// if schema.flows check if flow already is a key
-		// @ts-expect-error - security schema definition is lacking a bit
-		return !Object.keys(schema.flows).includes(flow);
-	});
-
-	let flowType: 'implicit' | 'password' | 'clientCredentials' | 'authorizationCode';
+	let flowType: FlowType = 'implicit';
+	$: if (availableFlows.length > 0 && !availableFlows.includes(flowType)) {
+		flowType = availableFlows[0];
+	}
 	const addOauthFlow = () => {
-		if (!flowType) return;
-		// @ts-expect-error - security schema definition is lacking a bit
-		schema.flows[flowType] = oauth2FlowTemplates[flowType];
-		// remove used flow from availableFlows
-		availableFlows = availableFlows.filter((flow) => flow !== flowType);
+		if (schema.type !== 'oauth2' || !flowType) return;
+		schema.flows ??= {};
+		if (schema.flows[flowType]) return;
+		if (flowType === 'implicit') {
+			schema.flows.implicit = structuredClone(oauth2FlowTemplates.implicit);
+		} else if (flowType === 'password') {
+			schema.flows.password = structuredClone(oauth2FlowTemplates.password);
+		} else if (flowType === 'clientCredentials') {
+			schema.flows.clientCredentials = structuredClone(oauth2FlowTemplates.clientCredentials);
+		} else {
+			schema.flows.authorizationCode = structuredClone(oauth2FlowTemplates.authorizationCode);
+		}
+		schema = schema;
+		onChange();
 	};
 
-	const removeOauthFlow = (flow: 'implicit' | 'password' | 'clientCredentials' | 'authorizationCode') => {
-		// @ts-expect-error - security schema definition is lacking a bit
-		let tempFlows = schema.flows;
-		delete tempFlows[flow];
-		// @ts-expect-error - security schema definition is lacking a bit
-		schema.flows = tempFlows;
-
-		// add flow back to availableFlows
-		availableFlows = [...availableFlows, flow];
+	const removeOauthFlow = (flow: FlowType) => {
+		if (schema.type !== 'oauth2') return;
+		delete schema.flows[flow];
+		schema = schema;
+		onChange();
 	};
 </script>
 
-<div class="space-y-2">
+<div class="space-y-2" on:input={onChange} on:change={onChange}>
 	{#if schema.type === 'http' && schema.scheme === 'basic'}
 		<h3 class="h3">Basic Authentication</h3>
 		<p>
@@ -60,18 +58,18 @@
 		<label>
 			<h5 class="h5">Description</h5>
 			<p class="text-sm">Human-readable information. May contain Markdown.</p>
-			<textarea class="textarea" placeholder="Description" />
+			<textarea class="textarea" placeholder="Description" bind:value={schema.description} />
 		</label>
 		<label>
 			<h5 class="h5">Bearer format</h5>
 			<p class="text-sm">A hint to the client to identify how the bearer token is formatted.</p>
-			<input type="text" class="input" placeholder="JWT" />
+			<input type="text" class="input" placeholder="JWT" bind:value={schema.bearerFormat} />
 		</label>
 	{:else if schema.type === 'apiKey'}
 		<h3 class="h3">API Key Authentication</h3>
 		<label>
 			<h5 class="h5">Location</h5>
-			<select class="input">
+			<select class="input" bind:value={schema.in}>
 				<option value="header">header</option>
 				<option value="query">query</option>
 				<option value="cookie">cookie</option>
@@ -80,12 +78,12 @@
 		<label>
 			<h5 class="h5">Name</h5>
 			<p class="text-sm">The name of the key parameter in the location.</p>
-			<input type="text" class="input" placeholder="api_key" />
+			<input type="text" class="input" placeholder="api_key" bind:value={schema.name} />
 		</label>
 		<label>
 			<h5 class="h5">Description</h5>
 			<p class="text-sm">Human-readable information. May contain Markdown.</p>
-			<textarea class="textarea" placeholder="Description" />
+			<textarea class="textarea" placeholder="Description" bind:value={schema.description} />
 		</label>
 	{:else if schema.type === 'openIdConnect'}
 		<h3 class="h3">OpenID Connect Authentication</h3>
@@ -96,23 +94,25 @@
 				type="url"
 				class="input"
 				placeholder="https://example.com/.well-known/openid-configuration"
+				bind:value={schema.openIdConnectUrl}
 			/>
 		</label>
 		<label>
 			<h5 class="h5">Description</h5>
 			<p class="text-sm">Human-readable information. May contain Markdown.</p>
-			<textarea class="textarea" placeholder="Description" />
+			<textarea class="textarea" placeholder="Description" bind:value={schema.description} />
 		</label>
 	{:else if schema.type === 'oauth2'}
 		<h3 class="h3">Oauth2 Authentication</h3>
 		<label>
 			<h5 class="h5">Description</h5>
 			<p class="text-sm">Human-readable information. May contain Markdown.</p>
-			<textarea class="textarea" placeholder="Description" />
+			<textarea class="textarea" placeholder="Description" bind:value={schema.description} />
 		</label>
 
 		<h5 class="h5">Flows</h5>
-		{#each Object.keys(schema.flows) as flow}
+		{#each configuredFlows as flow}
+			{@const configuredFlow = schema.flows[flow]}
 			<div class="flex w-full justify-between items-center">
 				<h6 class="h6">{flow.charAt(0).toLocaleUpperCase() + flow.slice(1)}</h6>
 
@@ -124,18 +124,22 @@
 					Remove {flow}
 				</button>
 			</div>
-			<OAuthFlow type={flow} flow={schema.flows[flow]} />
+			{#if configuredFlow}
+				<OAuthFlow type={flow} flow={configuredFlow} {onChange} />
+			{/if}
 		{/each}
 
-		<span class="w-full flex justify-center gap-2">
-			<select class="input w-min" bind:value={flowType}>
-				{#each availableFlows as flow}
-					<option value={flow}>{flow}</option>
-				{/each}
-			</select>
-			<button type="button" class="btn btn-sm variant-filled-primary" on:click={addOauthFlow}>
-				Add Flow
-			</button>
-		</span>
+		{#if availableFlows.length > 0}
+			<span class="w-full flex justify-center gap-2">
+				<select class="input w-min" bind:value={flowType}>
+					{#each availableFlows as flow}
+						<option value={flow}>{flow}</option>
+					{/each}
+				</select>
+				<button type="button" class="btn btn-sm variant-filled-primary" on:click={addOauthFlow}>
+					Add Flow
+				</button>
+			</span>
+		{/if}
 	{/if}
 </div>
