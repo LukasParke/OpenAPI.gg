@@ -7,4 +7,11 @@ describe('safeFilename', () => {
 		expect(safeFilename('   ')).toBe('openapi');
 		expect(safeFilename(undefined, 'spec')).toBe('spec');
 	});
+	it('prefixes Windows reserved device names', () => {
+		expect(safeFilename('CON')).toBe('_CON');
+		expect(safeFilename('con.txt')).toBe('_con.txt');
+		expect(safeFilename('LPT9')).toBe('_LPT9');
+		expect(safeFilename('nul.yaml')).toBe('_nul.yaml');
+		expect(safeFilename('constant')).toBe('constant');
+	});
 });

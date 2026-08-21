@@ -12,6 +12,19 @@ describe('normalizeImportedDocument', () => {
 		expect(document.components).toEqual({});
 		expect(document.webhooks).toEqual({});
 	});
+	it('accepts two-segment versions and only defaults webhooks for 3.1', () => {
+		const threeDotZero = normalizeImportedDocument({
+			openapi: '3.0',
+			info: { title: 'Pets', version: '1.0.0' }
+		});
+		expect(threeDotZero.webhooks).toBeUndefined();
+
+		const threeDotOne = normalizeImportedDocument({
+			openapi: '3.1',
+			info: { title: 'Pets', version: '1.0.0' }
+		});
+		expect(threeDotOne.webhooks).toEqual({});
+	});
 
 	it('rejects malformed and unsupported documents with actionable errors', () => {
 		expect(() => normalizeImportedDocument([])).toThrow(ImportError);

@@ -47,7 +47,10 @@ export const createNewSpec = (): APISpec => ({
 });
 
 export const newSpec: APISpec = createNewSpec();
-export const selectedSpecId: Writable<string | undefined> = persisted('selectedSpecId', undefined);
+export const selectedSpecId: Writable<string | number | undefined> = persisted(
+	'selectedSpecId',
+	undefined
+);
 export const selectedSpec: Writable<APISpec> = writable(createNewSpec());
 
 selectedSpec.subscribe((spec) => {
@@ -57,7 +60,8 @@ selectedSpec.subscribe((spec) => {
 });
 
 export interface APISpec {
-	id?: string;
+	/** Dexie's ++id primary key generates numbers; LoadButton passes explicit string keys too. */
+	id?: string | number;
 	name: string;
 	spec: OpenAPIV3_1.Document;
 }

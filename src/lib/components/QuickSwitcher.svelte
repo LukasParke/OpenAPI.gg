@@ -13,6 +13,7 @@
 
 	let query = '';
 	let input: HTMLInputElement;
+	let lastFocused: HTMLElement | null = null;
 
 	const sections: SwitcherItem[] = [
 		{ label: 'Dashboard', detail: 'Section', href: '/' },
@@ -48,7 +49,11 @@
 		: items.slice(0, 12);
 
 	$: if (open) {
+		lastFocused =
+			typeof document !== 'undefined' ? (document.activeElement as HTMLElement | null) : null;
 		tick().then(() => input?.focus());
+	} else {
+		lastFocused?.focus();
 	}
 
 	const select = async (item: SwitcherItem) => {
@@ -73,6 +78,7 @@
 			class="card h-fit w-full max-w-2xl overflow-hidden shadow-2xl"
 			role="dialog"
 			aria-modal="true"
+			aria-label="Quick switcher"
 		>
 			<div class="border-b border-surface-300-600-token p-3">
 				<input

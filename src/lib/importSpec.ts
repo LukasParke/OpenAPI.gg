@@ -12,7 +12,7 @@ export class ImportError extends Error {
 
 export const normalizeImportedDocument = (value: unknown): OpenAPIV3_1.Document => {
 	if (!isRecord(value)) throw new ImportError('The file must contain an object.');
-	if (typeof value.openapi !== 'string' || !/^3\.\d+\.\d+/.test(value.openapi)) {
+	if (typeof value.openapi !== 'string' || !/^3\.\d+(\.\d+)?/.test(value.openapi)) {
 		throw new ImportError('The file must declare a supported OpenAPI 3.x version.');
 	}
 	if (!isRecord(value.info)) throw new ImportError('The file must contain an info object.');
@@ -35,6 +35,9 @@ export const normalizeImportedDocument = (value: unknown): OpenAPIV3_1.Document 
 	const document = structuredClone(value) as unknown as OpenAPIV3_1.Document;
 	document.paths ??= {};
 	document.components ??= {};
-	document.webhooks ??= {};
+	// webhooks exists in OpenAPI 3.1 only; never inject it into 3.0 documents.
+	if (/^3\.1(\.|$)/.test(String(value.openapi))) {
+		document.webhooks ??= {};
+	}
 	return document;
 };

@@ -51,10 +51,10 @@ export const validateDocument = (document: OpenAPIV3_1.Document): Diagnostic[] =
 	const diagnostics: Diagnostic[] = [];
 	const operationIds = new Map<string, string>();
 
-	if (!document.info.title.trim()) {
+	if (typeof document.info?.title !== 'string' || !document.info.title.trim()) {
 		diagnostics.push({ severity: 'error', path: 'info.title', message: 'API title is required.' });
 	}
-	if (!document.info.version.trim()) {
+	if (typeof document.info?.version !== 'string' || !document.info.version.trim()) {
 		diagnostics.push({
 			severity: 'error',
 			path: 'info.version',
@@ -73,9 +73,17 @@ export const validateDocument = (document: OpenAPIV3_1.Document): Diagnostic[] =
 			});
 		}
 
-		const pathParameters = (path.parameters ?? []).filter(isParameter);
+		const effectiveParameters = new Map<string, OpenAPIV3_1.ParameterObject>();
+		for (const parameter of (path.parameters ?? []).filter(isParameter)) {
+			effectiveParameters.set(`${parameter.in}:${parameter.name}`, parameter);
+		}
+		for (const method of Object.values(HttpMethods)) {
+			for (const parameter of (path[method]?.parameters ?? []).filter(isParameter)) {
+				effectiveParameters.set(`${parameter.in}:${parameter.name}`, parameter);
+			}
+		}
 		const declaredPathParameters = new Set(
-			pathParameters
+			[...effectiveParameters.values()]
 				.filter((parameter) => parameter.in === 'path')
 				.map((parameter) => parameter.name)
 		);
@@ -88,7 +96,9 @@ export const validateDocument = (document: OpenAPIV3_1.Document): Diagnostic[] =
 				});
 			}
 		}
-		for (const parameter of pathParameters.filter((item) => item.in === 'path')) {
+		for (const parameter of [...effectiveParameters.values()].filter(
+			(item) => item.in === 'path'
+		)) {
 			if (!parameter.required) {
 				diagnostics.push({
 					severity: 'error',
@@ -134,7 +144,7 @@ export const validateDocument = (document: OpenAPIV3_1.Document): Diagnostic[] =
 	const securitySchemes = document.components?.securitySchemes ?? {};
 	for (const [index, requirement] of (document.security ?? []).entries()) {
 		for (const name of Object.keys(requirement)) {
-			if (!(name in securitySchemes)) {
+			if (!Object.prototype.hasOwnProperty.call(securitySchemes, name)) {
 				diagnostics.push({
 					severity: 'error',
 					path: `security.${index}.${name}`,

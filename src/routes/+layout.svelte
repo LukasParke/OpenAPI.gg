@@ -43,15 +43,24 @@
 		restoreSession();
 		const onKeydown = (event: KeyboardEvent) => {
 			const modifier = event.metaKey || event.ctrlKey;
-			if (modifier && event.key.toLowerCase() === 'k') {
+			if (!modifier) return;
+			const target = event.target as HTMLElement | null;
+			const editable =
+				!!target &&
+				(target.isContentEditable ||
+					target instanceof HTMLInputElement ||
+					target instanceof HTMLTextAreaElement);
+			const key = event.key.toLowerCase();
+			if (key === 'k') {
+				if (editable) return;
 				event.preventDefault();
 				quickSwitcherOpen = true;
 			}
-			if (modifier && event.key.toLowerCase() === 's') {
+			if (key === 's') {
 				event.preventDefault();
-				saveDocumentNow();
+				if (!event.repeat) saveDocumentNow();
 			}
-			if (modifier && event.key.toLowerCase() === 'z') {
+			if (key === 'z' && !editable) {
 				event.preventDefault();
 				if (event.shiftKey) redoDocument();
 				else undoDocument();

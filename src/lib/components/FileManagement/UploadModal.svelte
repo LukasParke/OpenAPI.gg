@@ -37,6 +37,14 @@
 		if (!files) return;
 		const file = files[0];
 		const reader = new FileReader();
+		reader.onerror = () => {
+			errorMessage = 'The file could not be read.';
+			ready = false;
+		};
+		reader.onabort = () => {
+			errorMessage = 'The file read was cancelled.';
+			ready = false;
+		};
 		reader.onload = () => {
 			const result = reader.result as string;
 			const isJson = file.name.endsWith('.json');

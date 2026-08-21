@@ -6,6 +6,7 @@
 	let format: 'json' | 'yaml' = 'yaml';
 	let severity: DiagnosticSeverity | 'all' = 'all';
 	let copied = false;
+	let copyError = '';
 	const severityFilters: (DiagnosticSeverity | 'all')[] = ['all', 'error', 'warning'];
 
 	$: diagnostics = validateDocument($selectedSpec.spec);
@@ -20,9 +21,15 @@
 			: stringify($selectedSpec.spec, { indent: 2, aliasDuplicateObjects: false });
 
 	const copySource = async () => {
-		await navigator.clipboard.writeText(source);
-		copied = true;
-		setTimeout(() => (copied = false), 1500);
+		try {
+			await navigator.clipboard.writeText(source);
+			copyError = '';
+			copied = true;
+			setTimeout(() => (copied = false), 1500);
+		} catch {
+			copied = false;
+			copyError = 'Copying was blocked. Select the source below and copy it manually.';
+		}
 	};
 
 	const diagnosticHref = (path: string) => {
@@ -117,6 +124,11 @@
 					{copied ? 'Copied' : 'Copy source'}
 				</button>
 			</div>
+			{#if copyError}
+				<p class="rounded-container-token variant-soft-error p-2 text-sm" role="alert">
+					{copyError}
+				</p>
+			{/if}
 			<pre
 				class="max-h-[70vh] overflow-auto rounded-container-token bg-surface-900 p-4 text-sm text-surface-50"><code
 					>{source}</code

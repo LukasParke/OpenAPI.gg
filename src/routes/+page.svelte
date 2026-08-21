@@ -7,12 +7,28 @@
 	import SaveButton from '$lib/components/FileManagement/SaveButton.svelte';
 	import SaveNewButton from '$lib/components/FileManagement/SaveNewButton.svelte';
 	import UploadButton from '$lib/components/FileManagement/UploadButton.svelte';
-	import { db, selectedSpec } from '$lib/db';
+	import { db, selectedSpec, type APISpec } from '$lib/db';
 	import { diagnosticCounts, validateDocument } from '$lib/validation';
 	import { liveQuery } from 'dexie';
 	import { ProgressRadial } from '@skeletonlabs/skeleton';
+	import { onMount } from 'svelte';
+	import { writable } from 'svelte/store';
 
-	const apiSpecs = liveQuery(() => db.apiSpecs.toArray());
+	const apiSpecs = writable<APISpec[] | undefined>(undefined);
+	let loadError = '';
+
+	onMount(() => {
+		const subscription = liveQuery(() => db.apiSpecs.toArray()).subscribe({
+			next: (specs) => apiSpecs.set(specs),
+			error: (error: unknown) => {
+				loadError =
+					error instanceof Error
+						? `Could not load saved specifications: ${error.message}`
+						: 'Could not load saved specifications.';
+			}
+		});
+		return () => subscription.unsubscribe();
+	});
 
 	$: componentCount = Object.values($selectedSpec.spec.components ?? {}).reduce(
 		(total, section) => total + Object.keys(section ?? {}).length,
@@ -32,7 +48,14 @@
 	<title>OpenAPI Generator</title>
 </svelte:head>
 
-{#if $apiSpecs === undefined}
+{#if loadError}
+	<div class="mx-auto max-w-7xl">
+		<div class="card variant-soft-error p-6" role="alert">
+			<p class="font-semibold">Saved specifications are unavailable.</p>
+			<p class="mt-1 text-sm opacity-80">{loadError}</p>
+		</div>
+	</div>
+{:else if $apiSpecs === undefined}
 	<div class="grid min-h-[60vh] place-content-center">
 		<ProgressRadial />
 	</div>

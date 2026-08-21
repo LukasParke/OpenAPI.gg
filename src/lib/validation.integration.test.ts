@@ -85,4 +85,37 @@ describe('OpenAPI validation', () => {
 			);
 		}
 	);
+	it('flags security requirements that only match inherited property names', () => {
+		const { spec } = createNewSpec();
+		spec.info.title = 'Secure API';
+		spec.info.version = '1.0.0';
+		spec.security = [{ constructor: [] }];
+
+		expect(validateDocument(spec).map((diagnostic) => diagnostic.message)).toContain(
+			'Security requirement "constructor" has no matching security scheme.'
+		);
+	});
+
+	it('accepts operation-level path parameters and tolerates missing info fields', () => {
+		const { spec } = createNewSpec();
+		spec.info.title = undefined as unknown as string;
+		spec.info.version = undefined as unknown as string;
+		spec.paths = {
+			'/users/{userId}': {
+				get: {
+					parameters: [{ name: 'userId', in: 'path', required: true, schema: { type: 'string' } }],
+					responses: {
+						'200': { description: 'OK' }
+					}
+				}
+			}
+		};
+
+		const diagnostics = validateDocument(spec);
+		expect(diagnosticCounts(diagnostics)).toEqual({ errors: 2, warnings: 0 });
+		expect(diagnostics.map((diagnostic) => diagnostic.message)).toContain('API title is required.');
+		expect(diagnostics.map((diagnostic) => diagnostic.message)).toContain(
+			'API version is required.'
+		);
+	});
 });

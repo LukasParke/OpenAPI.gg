@@ -27,7 +27,7 @@ export class PersistenceQueue {
 
 export class EditorHistory {
 	private current?: APISpec;
-	private currentIdentity?: string;
+	private currentIdentity?: string | number;
 	private undoStack: APISpec[] = [];
 	private redoStack: APISpec[] = [];
 	private lastChangeAt = 0;
@@ -106,7 +106,11 @@ const updateHistoryState = () => {
 const scheduleAutosave = (spec: APISpec) => {
 	if (!spec.id || typeof window === 'undefined') {
 		if (typeof window !== 'undefined') {
-			localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(spec));
+			try {
+				localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(spec));
+			} catch {
+				// Draft recovery is best effort; storage may be unavailable or full.
+			}
 		}
 		saveStatus.set('unsaved');
 		return;
@@ -162,25 +166,46 @@ export const redoDocument = () => {
 	scheduleAutosave(spec);
 };
 
-export const saveDocumentNow = async () => {
+let inFlightSave: Promise<void> | undefined;
+
+const performSave = async () => {
 	clearTimeout(autosaveTimer);
 	const revision = ++autosaveRevision;
 	saveStatus.set('saving');
+	const pending = snapshot(get(selectedSpec));
+	const pendingIdentity = identity(pending);
 	try {
-		const pending = snapshot(get(selectedSpec));
 		const saved = await persistence.enqueue(() => saveSpec(pending));
 		if (saved) {
 			if (typeof window !== 'undefined') localStorage.removeItem(DRAFT_STORAGE_KEY);
 			recoveredDraft = false;
 			draftRecovered.set(false);
-			selectedSpec.set(saved);
-			history.reset(saved);
+			const current = get(selectedSpec);
+			const unchanged =
+				identity(current) === pendingIdentity && serialize(current) === serialize(pending);
+			if (unchanged) {
+				selectedSpec.set(saved);
+				history.reset(saved);
+			} else {
+				// Keep newer edits on screen but adopt the persisted identity so the
+				// next save updates this record instead of creating a duplicate.
+				current.id = saved.id;
+				selectedSpec.set(current);
+				history.reset(current);
+			}
 			updateHistoryState();
 		}
 		if (revision === autosaveRevision) saveStatus.set('saved');
 	} catch {
 		if (revision === autosaveRevision) saveStatus.set('error');
 	}
+};
+
+export const saveDocumentNow = (): Promise<void> => {
+	inFlightSave ??= performSave().finally(() => {
+		inFlightSave = undefined;
+	});
+	return inFlightSave;
 };
 
 export const recoverDraft = () => {
